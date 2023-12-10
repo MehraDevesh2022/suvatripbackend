@@ -55,7 +55,7 @@ const signupVendor = async (req, res) => {
       username: name,
       password: hashedPassword,
       email,
-      role
+      role:"vendor"
     });
 
     const token = generateToken(vendor);
@@ -88,7 +88,7 @@ const signupAdmin = async (req, res) => {
       username: name,
       password: hashedPassword,
       email,
-      role: "superadmin",
+      role: "admin",
     });
 
     const token = generateToken(user);
@@ -99,6 +99,7 @@ const signupAdmin = async (req, res) => {
 //LOGIN IN USER
 const loginUser = async (req, res) => {
   try {
+    console.log("trying loggin")
     const { email, password ,role} = req.body;
     if (!role || !email || !password) {
       return res.status(400).json({ message: "Please enter all fields" });
@@ -145,7 +146,6 @@ const loginUser = async (req, res) => {
 
 
     
-    res.status(200).json({ message: "User logged in successfully"});
   } catch (error) {
     res.status(500).json({ message: "Something went wrong" });
   }
