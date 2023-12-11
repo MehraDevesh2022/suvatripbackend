@@ -4,6 +4,10 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const connectDB = require("./db/db");
 const authRouter = require("./routes/authRoute");
+const reviewRouter = require("./routes/reviewRoute");
+const invoiceRoute = require("./routes/invoiceRoute");
+const promotionRoute = require("./routes/promotionRoute");
+const ratePlanRoute = require("./routes/ratePlanRoute");
 const  config  = require("./config/config");
 var cors = require('cors')
 
@@ -31,6 +35,10 @@ app.get("/", (req, res) => {
 
 // routes
 app.use("/auth", authRouter); // Make sure to use the correct path here
+app.use("/review", reviewRouter); 
+app.use("/invoice", invoiceRoute);
+app.use("/promotion", promotionRoute);
+app.use("/rateplan", ratePlanRoute);
 
 connectDB();
 app.listen(config.PORT, () => {
