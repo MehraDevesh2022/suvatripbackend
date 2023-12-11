@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const connectDB = require("./db/db");
 const authRouter = require("./routes/authRoute");
+const hotelRouter = require("./routes/hotelRoute");
 const  config  = require("./config/config");
 var cors = require('cors')
 
@@ -31,6 +32,7 @@ app.get("/", (req, res) => {
 
 // routes
 app.use("/auth", authRouter); // Make sure to use the correct path here
+app.use("/hotel", hotelRouter);
 
 connectDB();
 app.listen(config.PORT, () => {
