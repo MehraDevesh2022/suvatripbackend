@@ -10,14 +10,15 @@ const invoiceRoute = require("./routes/invoiceRoute");
 const promotionRoute = require("./routes/promotionRoute");
 const ratePlanRoute = require("./routes/ratePlanRoute");
 const hotelRouter = require("./routes/hotelRoute");
+require("dotenv").config({ path: ".env"});
 
 const  config  = require("./config/config");
 var cors = require('cors')
 
 app.use(cors());
 
-app.use(cookieParser());
-app.use(express.json());
+// app.use(cookieParser());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 app.use(function (req, res, next) {
@@ -42,7 +43,7 @@ app.use("/auth", authRouter); // Make sure to use the correct path here
 app.use("/auth", authRouter); // Make sure to use the correct path here
 app.use("/review", reviewRouter); 
 app.use("/invoice", invoiceRoute);
-app.use("/promotion", promotionRoute);
+// app.use("/promotion", promotionRoute);
 app.use("/rateplan", ratePlanRoute);
 app.use("/hotel", hotelRouter); // Adding the hotelRouter route
 

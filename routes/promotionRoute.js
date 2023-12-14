@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const promotionController = require("../controller/promotionController");
-const authenticateToken = require("../middleware/auth"); // Assuming you have an authentication middleware
+const authenticateToken = require("../middleWare/auth"); // Assuming you have an authentication middleware
 
 // Create a new promotion
 router.post(
