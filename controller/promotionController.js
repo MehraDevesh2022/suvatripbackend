@@ -1,93 +1,118 @@
 const Promotion = require("../model/promotionSchema");
-const generateUUID = require("../utils/createUUID");
+
 exports.createPromotion = async (req, res) => {
   try {
-    const { promotionName, room_id, endDate } = req.body;
+    const allowedFields = ['promotionName', 'room_id', 'endDate', 'totalReservations', 'status'];
 
-    const newPromotion = new Promotion({
-      UUID: generateUUID(),
-      promotionName,
-      room_id,
-      endDate,
-      totalReservation: 0,
-      status: "Active",
+    const newPromotionData = {};
+    Object.keys(req.body).forEach(key => {
+      if (allowedFields.includes(key)) {
+        newPromotionData[key] = req.body[key];
+      }
     });
 
-    const savedPromotion = await newPromotion.save();
-
-    res.status(201).json(savedPromotion);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    const newPromotion = await Promotion.create(newPromotionData);
+    res.status(201).json({
+      status: true,
+      message: 'Promotion created successfully',
+      data: newPromotion
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: false,
+      message: err.message
+    });
   }
 };
 
 exports.getAllPromotions = async (req, res) => {
   try {
-    const promotions = await Promotion.find();
-    res.json(promotions);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    const promotions = await Promotion.find().populate('room_id');
+    res.json({
+      status: true,
+      message: 'All promotions retrieved successfully',
+      data: promotions
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: false,
+      message: err.message
+    });
   }
 };
 
 exports.getPromotionById = async (req, res) => {
   try {
-    const promotion = await Promotion.findOne({ UUID: req.params.id });
+    const promotion = await Promotion.findById(req.params.id).populate('room_id');
     if (!promotion) {
-      return res.status(404).json({ error: "Promotion not found" });
+      return res.status(404).json({
+        status: false,
+        message: 'Promotion not found'
+      });
     }
-    res.json(promotion);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.json({
+      status: true,
+      message: 'Promotion retrieved successfully',
+      data: promotion
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: false,
+      message: err.message
+    });
   }
 };
 
 exports.updatePromotion = async (req, res) => {
   try {
-    const { promotionName, room_id, endDate, totalReservation, status } =
-      req.body;
-
-    const promotion = await Promotion.findOne({ UUID: req.params.id });
+    const promotion = await Promotion.findById(req.params.id);
     if (!promotion) {
-      return res.status(404).json({ error: "Promotion not found" });
+      return res.status(404).json({
+        status: false,
+        message: 'Promotion not found'
+      });
     }
 
-    promotion.promotionName = promotionName || promotion.promotionName;
-    promotion.room_id = room_id || promotion.room_id;
-    promotion.endDate = endDate || promotion.endDate;
-    promotion.totalReservation =
-      totalReservation !== undefined
-        ? totalReservation
-        : promotion.totalReservation;
-    promotion.status = status || promotion.status;
+    const allowedFields = ['promotionName', 'room_id', 'endDate', 'totalReservations', 'status'];
 
-    await promotion.save();
+    Object.keys(req.body).forEach(key => {
+      if (allowedFields.includes(key)) {
+        promotion[key] = req.body[key];
+      }
+    });
 
+    const updatedPromotion = await promotion.save();
     res.json({
       status: true,
-      message: "Promotion data updated successfully",
-      data: promotion,
+      message: 'Promotion updated successfully',
+      data: updatedPromotion
     });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+  } catch (err) {
+    res.status(400).json({
+      status: false,
+      message: err.message
+    });
   }
 };
 
 exports.deletePromotion = async (req, res) => {
   try {
-    const promotion = await Promotion.findOneAndRemove({ UUID: req.params.id });
-    if (!promotion) {
-      return res.status(404).json({ error: "Promotion not found" });
+    const deletedPromotion = await Promotion.findByIdAndDelete(req.params.id);
+    if (!deletedPromotion) {
+      return res.status(404).json({
+        status: false,
+        message: 'Promotion not found'
+      });
     }
-
-    res.json({ status: true, message: "Promotion deleted successfully" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.json({
+      status: true,
+      message: 'Promotion deleted successfully'
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: false,
+      message: err.message
+    });
   }
 };
 

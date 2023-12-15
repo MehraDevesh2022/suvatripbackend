@@ -2,106 +2,116 @@ const Review = require("../model/reviewSchema");
 
 exports.getAllReviews = async (req, res) => {
   try {
-    const reviews = await Review.find();
+    const reviews = await Review.find().populate('hotel_id user_id');
     res.json({
       status: true,
-      message: "Review data fetched successfully",
-      data: reviews,
+      message: 'All reviews retrieved successfully',
+      data: reviews
     });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({
+      status: false,
+      message: err.message
+    });
   }
 };
 
 exports.createReview = async (req, res) => {
-  const allowedFields = ["user_id", "hotel_id", "rating", "review_text"];
-
-  const receivedFields = Object.keys(req.body);
-  const isValidOperation = receivedFields.every((field) =>
-    allowedFields.includes(field)
-  );
-
-  if (!isValidOperation) {
-    return res.status(400).json({ error: "Invalid fields in request!" });
-  }
-
   try {
-    const review = new Review(req.body);
-    const newReview = await review.save();
-    res.json({
+    const allowedFields = ['hotel_id', 'user_id', 'rating', 'review'];
+
+    const newReviewData = {};
+    Object.keys(req.body).forEach(key => {
+      if (allowedFields.includes(key)) {
+        newReviewData[key] = req.body[key];
+      }
+    });
+
+    const newReview = await Review.create(newReviewData);
+    res.status(201).json({
       status: true,
-      message: "Review created successfully",
-      data: newReview,
+      message: 'Review created successfully',
+      data: newReview
     });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(400).json({
+      status: false,
+      message: err.message
+    });
   }
 };
 
 exports.getReviewById = async (req, res) => {
   try {
-    const { id } = req.params;
-
-    const review = await Review.findById(id);
+    const review = await Review.findById(req.params.id).populate('hotel_id user_id');
     if (!review) {
-      return res.status(404).json({ error: "Review not found!" });
+      return res.status(404).json({
+        status: false,
+        message: 'Review not found'
+      });
     }
-
     res.json({
       status: true,
-      message: "Review data fetched successfully",
-      data: review,
+      message: 'Review retrieved successfully',
+      data: review
     });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({
+      status: false,
+      message: err.message
+    });
   }
 };
 
 exports.updateReview = async (req, res) => {
-  const allowedFields = ["user_id", "hotel_id", "rating", "review_text"];
-
-  const receivedFields = Object.keys(req.body);
-  const isValidOperation = receivedFields.every((field) =>
-    allowedFields.includes(field)
-  );
-
-  if (!isValidOperation) {
-    return res.status(400).json({ error: "Invalid fields in request!" });
-  }
-
   try {
     const review = await Review.findById(req.params.id);
     if (!review) {
-      return res.status(404).json({ error: "Review not found!" });
+      return res.status(404).json({
+        status: false,
+        message: 'Review not found'
+      });
     }
 
-    allowedFields.forEach((field) => {
-      if (req.body[field] !== undefined) {
-        review[field] = req.body[field];
+    const allowedFields = ['hotel_id', 'user_id', 'rating', 'review'];
+
+    Object.keys(req.body).forEach(key => {
+      if (allowedFields.includes(key)) {
+        review[key] = req.body[key];
       }
     });
 
-    await review.save();
+    const updatedReview = await review.save();
     res.json({
       status: true,
-      message: "Review data updated successfully",
-      data: review,
+      message: 'Review updated successfully',
+      data: updatedReview
     });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(400).json({
+      status: false,
+      message: err.message
+    });
   }
 };
 
 exports.deleteReview = async (req, res) => {
   try {
-    const review = await Review.findById(req.params.id);
-    if (!review) {
-      return res.status(404).json({ error: "Review not found!" });
+    const deletedReview = await Review.findByIdAndDelete(req.params.id);
+    if (!deletedReview) {
+      return res.status(404).json({
+        status: false,
+        message: 'Review not found'
+      });
     }
-
-    await review.remove();
-    res.json({ status: true, message: "Review deleted successfully" });
+    res.json({
+      status: true,
+      message: 'Review deleted successfully'
+    });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({
+      status: false,
+      message: err.message
+    });
   }
 };

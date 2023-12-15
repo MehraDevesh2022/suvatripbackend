@@ -1,83 +1,118 @@
 const Invoice = require("../model/invoiceSchema");
-const generateUUID = require("../utils/createUUID");
+
 exports.createInvoice = async (req, res) => {
   try {
-    const { booking_id, invoice_url } = req.body;
+    const allowedFields = ['booking_id', 'invoice_url', 'payment_status', 'created_at'];
 
-    const newInvoice = new Invoice({
-      UUID: generateUUID(), // You can use a function to generate a UUID
-      booking_id,
-      invoice_url,
-      payment_status: "Pending",
+    const newInvoiceData = {};
+    Object.keys(req.body).forEach(key => {
+      if (allowedFields.includes(key)) {
+        newInvoiceData[key] = req.body[key];
+      }
     });
 
-    const savedInvoice = await newInvoice.save();
-
-    res.status(201).json(savedInvoice);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    const newInvoice = await Invoice.create(newInvoiceData);
+    res.status(201).json({
+      status: true,
+      message: 'Invoice created successfully',
+      data: newInvoice
+    });
+  } catch (err) {
+    res.status(400).json({
+      status: false,
+      message: err.message
+    });
   }
 };
 
 exports.getAllInvoices = async (req, res) => {
   try {
-    const invoices = await Invoice.find();
-    res.json(invoices);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    const invoices = await Invoice.find().populate('booking_id');
+    res.json({
+      status: true,
+      message: 'All invoices retrieved successfully',
+      data: invoices
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: false,
+      message: err.message
+    });
   }
 };
 
 exports.getInvoiceById = async (req, res) => {
   try {
-    const invoice = await Invoice.findOne({ UUID: req.params.id });
+    const invoice = await Invoice.findById(req.params.id).populate('booking_id');
     if (!invoice) {
-      return res.status(404).json({ error: "Invoice not found" });
+      return res.status(404).json({
+        status: false,
+        message: 'Invoice not found'
+      });
     }
-    res.json(invoice);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.json({
+      status: true,
+      message: 'Invoice retrieved successfully',
+      data: invoice
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: false,
+      message: err.message
+    });
   }
 };
 
 exports.updateInvoice = async (req, res) => {
   try {
-    const { payment_status } = req.body;
-
-    const invoice = await Invoice.findOne({ UUID: req.params.id });
+    const invoice = await Invoice.findById(req.params.id);
     if (!invoice) {
-      return res.status(404).json({ error: "Invoice not found" });
+      return res.status(404).json({
+        status: false,
+        message: 'Invoice not found'
+      });
     }
 
-    invoice.payment_status = payment_status || invoice.payment_status;
+    const allowedFields = ['booking_id', 'invoice_url', 'payment_status'];
 
-    await invoice.save();
+    Object.keys(req.body).forEach(key => {
+      if (allowedFields.includes(key)) {
+        invoice[key] = req.body[key];
+      }
+    });
 
+    const updatedInvoice = await invoice.save();
     res.json({
       status: true,
-      message: "Invoice data updated successfully",
-      data: invoice,
+      message: 'Invoice updated successfully',
+      data: updatedInvoice
     });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+  } catch (err) {
+    res.status(400).json({
+      status: false,
+      message: err.message
+    });
   }
 };
 
 exports.deleteInvoice = async (req, res) => {
   try {
-    const invoice = await Invoice.findOneAndRemove({ UUID: req.params.id });
-    if (!invoice) {
-      return res.status(404).json({ error: "Invoice not found" });
+    const deletedInvoice = await Invoice.findByIdAndDelete(req.params.id);
+    if (!deletedInvoice) {
+      return res.status(404).json({
+        status: false,
+        message: 'Invoice not found'
+      });
     }
-
-    res.json({ status: true, message: "Invoice deleted successfully" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
+    res.json({
+      status: true,
+      message: 'Invoice deleted successfully'
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: false,
+      message: err.message
+    });
   }
 };
 

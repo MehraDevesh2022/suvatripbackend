@@ -1,6 +1,13 @@
 const mongoose = require("mongoose");
+const { v4: uuidv4 } = require('uuid');
 
 const vendorSchema = new mongoose.Schema({
+  UUID: {
+    type: String,
+    default: uuidv4,
+    unique: true,
+    required: true
+  },
   username: {
     type: String,
     required: true,
@@ -15,12 +22,32 @@ const vendorSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  role: {
+  country: {
     type: String,
-    default: "vendor",
   },
+  areaCode: {
+    type: String,
+  },
+  city: {
+    type: String,
+  },
+  status: {
+    type: Boolean,
+    default: false,
+  },
+  otp: {
+    type: String,
+    required: true,
+  },
+  otpVerify: {
+    type: Boolean,
+    default: false,
+  },
+  documents: {
+    type: String,
+  }
 });
 
-const vendor = mongoose.model("vendor", vendorSchema);
+const Vendor = mongoose.model("Vendor", vendorSchema);
 
-module.exports = vendor;
+module.exports = Vendor;

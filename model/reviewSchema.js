@@ -1,24 +1,20 @@
 const mongoose = require("mongoose");
+const { v4: uuidv4 } = require('uuid');
 
 const reviewSchema = new mongoose.Schema({
-  review_id: {
+  UUID: {
     type: String,
-    required: true,
+    default: uuidv4,
     unique: true,
+    required: true
   },
-  user_id: {
-    type: String,
-    required: true,
-  },
-  hotel_id: {
-    type: String,
-    required: true,
-  },
+  hotel_id:  { type: mongoose.Schema.Types.ObjectId, ref: "Hotel" },
+  user_id:  { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   rating: {
     type: Number,
     required: true,
   },
-  review_text: {
+  review: {
     type: String,
     required: true,
   },
