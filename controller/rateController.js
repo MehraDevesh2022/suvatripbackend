@@ -1,4 +1,4 @@
-const RatePlan = require("../model/ratePlanSehma");
+const RatePlan = require("../model/ratePlanSchema");
 
 exports.createRatePlan = async (req, res) => {
   try {

@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const invoiceController = require('../controller/invoiceController');
-const authenticateToken = require('../middleware/auth'); 
+const authenticateToken = require('../middleWare/auth'); 
 
 // Create a new invoice
 router.post('/invoices', authenticateToken, invoiceController.createInvoice);
