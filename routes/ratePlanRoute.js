@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const ratePlanController = require("../controller/rateController");
-const authenticateToken = require("../middleware/auth"); // Assuming you have an authentication middleware
+const authenticateToken = require("../middleWare/auth"); // Assuming you have an authentication middleware
 
 // Create a new rate plan admin
 router.post(

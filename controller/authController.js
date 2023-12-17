@@ -99,33 +99,74 @@ const signupAdmin = async (req, res) => {
 //LOGIN IN USER
 const loginUser = async (req, res) => {
   try {
-      const { email, password } = req.body;
+    console.log("trying loggin")
+    const { email, password ,role} = req.body;
+    if (!role || !email || !password) {
+      return res.status(400).json({ message: "Please enter all fields" });
+    }
 
-      if (!email || !password) {
-          return res.status(400).json({ message: 'Please enter all fields' });
-      }
-
+    if(role==='user'){
       const user = await User.findOne({ email });
-
+    
       if (!user || !bcrypt.compareSync(password, user.password)) {
-          return res.status(401).json({ message: 'Invalid credentials' });
+        return res.status(401).json({ message: "Invalid credentials" });
       }
+  
+      const token = generateToken(user);
+  
+      // Send the token in the response
+      res.status(201).json({ token});
+    }
+    else if(role==='vendor'){
+      const findvendor = await vendor.findOne({ email });
+    
+      if (!findvendor || !bcrypt.compareSync(password, findvendor.password)) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+  
+      const token = generateToken(findvendor);
+  
+      // Send the token in the response
+      res.status(201).json({token});
 
-      // Generate and store OTP
-      const otp = generateOTP();
-      const expirationTime = new Date(Date.now() + 5 * 60 * 1000);
-      await storeOTP(email, otp, expirationTime);
+    }
+    else if(role==="admin"){
+      const findadmin = await admin.findOne({ email });
+    
+      if (!findadmin || !bcrypt.compareSync(password, findadmin.password)) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+  
+      const token = generateToken(findadmin);
+  
+      // Send the token in the response
+      res.status(201).json({token});
 
-      // Send OTP via Sociair SMS
-      const sociairResponse = await sendOtpViaSociair(user.number, otp);
-   res.status(201).json({ message: 'OTP sent successfully', sociairResponse });
+    }
 
+
+    
   } catch (error) {
-      console.error('Error during login:', error);
-      res.status(500).json({ message: 'Something went wrong' });
+    res.status(500).json({ message: "Something went wrong" });
   }
 };
 
+const loginviamobile=async (req,res)=>{
+  try {
+    const number =req.body.contactno
+    const otp = generateOTP();
+    const expirationTime = new Date(Date.now() + 5 * 60 * 1000);
+    await storeOTP(number, otp, expirationTime);
+
+
+    // Send OTP via Sociair SMS
+    const sociairResponse = await sendOtpViaSociair(number, otp);
+ res.status(201).json({ message: 'OTP sent successfully', sociairResponse });
+  } catch (error) {
+    console.error('Error during login:', error);
+    res.status(500).json({ message: 'Something went wrong' });
+  }
+}
 
 
 
@@ -150,7 +191,7 @@ const sendOtpViaSociair = async (number, otp) => {
  
       const payload = {
           message: `Your OTP is: ${otp}`,
-          mobile: +number, 
+          mobile: number, 
       };
 
       const response = await axios.post(url, payload, { headers });
@@ -225,4 +266,4 @@ const generateOTP = () => {
 
 
 
-module.exports = { signupUser, signupAdmin, signupVendor, loginUser };
+module.exports = { signupUser, signupAdmin, signupVendor, loginUser,loginviamobile };
