@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const connectDB = require("./db/db");
 const authRouter = require("./routes/authRoute");
+const path = require("path")
 
 const reviewRouter = require("./routes/reviewRoute");
 const invoiceRoute = require("./routes/invoiceRoute");
@@ -14,6 +15,8 @@ require("dotenv").config({ path: ".env"});
 
 const  config  = require("./config/config");
 var cors = require('cors')
+
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 app.use(cors());
 

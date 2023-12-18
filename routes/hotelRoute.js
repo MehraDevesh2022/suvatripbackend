@@ -12,11 +12,11 @@ router.post("/create-hotel",
   hotelController.createHotel);
 
 router.get("/get-hotel-by-id/:id",
-  authenticateToken,
+  // authenticateToken,
   hotelController.getHotelById);
   
-router.post("/update-hotel/:id",
-  authenticateToken,
+router.patch("/update-hotel/:id",
+  // authenticateToken,
   hotelController.updateHotel);
 
 router.delete("/delete-hotel/:id",

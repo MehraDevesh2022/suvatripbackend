@@ -21,12 +21,24 @@ exports.createHotel = async (req, res) => {
       return res.status(400).send('Error uploading files.');
     }
 
+    let facilities = {
+      accommodation: JSON.parse(req.body.facility).accommodation ? JSON.parse(req.body.facility).accommodation : [],
+      recreation: JSON.parse(req.body.facility).recreation ? JSON.parse(req.body.facility).recreation : [],
+      connectivity: JSON.parse(req.body.facility).connectivity ? JSON.parse(req.body.facility).connectivity : []
+    }
+
+    let ammenities = {
+      bathroom: JSON.parse(req.body.ammenities).bathroom ? JSON.parse(req.body.ammenities).bathroom : [],
+      inRoom: JSON.parse(req.body.ammenities).inRoom ? JSON.parse(req.body.ammenities).inRoom : [],
+    }
+
     let data = {
       contactNo: JSON.parse(req.body.contactDetails).contactNo,
       country: JSON.parse(req.body.contactDetails).country,
       city: JSON.parse(req.body.contactDetails).city,
       ...JSON.parse(req.body.basicDetails),
-      facilities: JSON.parse(req.body.facility),
+      facilities: facilities,
+      ammenities: ammenities,
       hotelRules: JSON.parse(req.body.hotelRules),
       paymentPolicy: JSON.parse(req.body.paymentPolicy),
       parking: JSON.parse(req.body.parking),
@@ -34,8 +46,8 @@ exports.createHotel = async (req, res) => {
     }
 
     const pictureLinks = req.files['picture'].map(file => ({ link: `${process.env.HOST}${":" + process.env.PORT}/uploads/propertyPicture/${file.filename}` }));
-    const roomPictureLinks = req.files['roomPicture'].map(file => ({ link: `${process.env.HOST}${":" + process.env.PORT}/uploads/propertyPicture/${file.filename}` }));
-    const areaPictureLinks = req.files['areaPicture'].map(file => ({ link: `${process.env.HOST}${":" + process.env.PORT}/uploads/propertyPicture/${file.filename}` }));
+    const roomPictureLinks = req.files['roomPicture'].map(file => ({ link: `${process.env.HOST}${":" + process.env.PORT}/uploads/roomPicture/${file.filename}` }));
+    const areaPictureLinks = req.files['areaPicture'].map(file => ({ link: `${process.env.HOST}${":" + process.env.PORT}/uploads/areaPicture/${file.filename}` }));
     const documentLinks = req.files['file'].map(file => ({ link: `${process.env.HOST}${":" + process.env.PORT}/uploads/documents/${file.filename}` }));
 
     try {
@@ -59,13 +71,22 @@ exports.createHotel = async (req, res) => {
 exports.getHotelById = async (req, res) => {
   try {
     const { id } = req.params;
+    const { fields } = req.query;
 
-    const hotels = await Hotel.findById(id);
+    let query = Hotel.findOne({ vendor_id: id });
+
+    if (fields) {
+      const fieldsArray = fields.split(',');
+      query = query.select(fieldsArray.join(' '));
+    }
+
+    const hotels = await query.exec();
     res.json({ status: true, message: 'Hotel data fetched successfully', data: hotels });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
+
 
 exports.updateHotel = async (req, res) => {
   const allowedFields = [
@@ -86,7 +107,8 @@ exports.updateHotel = async (req, res) => {
     'parking',
     'latitude',
     'longitude',
-    'promoted'
+    'promoted',
+    'ammenities'
   ];
 
   const receivedFields = Object.keys(req.body);
@@ -97,7 +119,7 @@ exports.updateHotel = async (req, res) => {
   }
 
   try {
-    const hotel = await Hotel.findById(req.params.id);
+    const hotel = await Hotel.findOne({vendor_id: req.params.id});
     if (!hotel) {
       return res.status(404).json({ error: 'Hotel not found!' });
     }
@@ -107,6 +129,8 @@ exports.updateHotel = async (req, res) => {
         hotel[field] = req.body[field];
       }
     });
+
+    console.log(hotel.ammenities);
 
     await hotel.save();
     res.json({ status: true, message: 'Hotel data updated successfully', data: hotel });
