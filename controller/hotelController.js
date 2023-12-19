@@ -54,6 +54,7 @@ exports.createHotel = async (req, res) => {
       paymentPolicy: JSON.parse(req.body.paymentPolicy),
       parking: JSON.parse(req.body.parking),
       transportation: JSON.parse(req.body.transportation),
+      description: JSON.parse(req.body.description),
     }
 
     const pictureLinks = req.files['picture'].map(file => ({ link: `${process.env.HOST}${":" + process.env.PORT}/uploads/propertyPicture/${file.filename}` }));
