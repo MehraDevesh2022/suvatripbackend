@@ -15,6 +15,7 @@ const roomSchema = new mongoose.Schema({
     beds: { type: Number, required: true },
     bathroom: { type: Number, required: true },
     price: { type: Number, required: true },
+    noOfRooms: { type: Number, required: true },
 });
 
 const Room = mongoose.model('Room', roomSchema);

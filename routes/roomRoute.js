@@ -1,27 +1,30 @@
 const express = require("express");
 const router = express.Router();
-const promotionController = require("../controller/promotionController");
+const roomController = require("../controller/roomController");
 const authenticateToken = require("../middleWare/auth"); // Assuming you have an authentication middleware
 
-// Create a new promotion
 router.post(
-  "/rooms",
-  authenticateToken,
-  promotionController.createPromotion
+  "/",
+  // authenticateToken,
+  roomController.createRoom
 );
 
-// Get all promotions
 router.get(
-  "/rooms",
-  authenticateToken,
-  promotionController.getAllPromotions
+  "/:id",
+  // authenticateToken,
+  roomController.getAllRooms
 );
 
-// Delete a promotion by UUID
+router.patch(
+  "/:id",
+  // authenticateToken,
+  roomController.updateRoom
+);
+
 router.delete(
-  "/rooms/:id",
-  authenticateToken,
-  promotionController.deletePromotion
+  "/:id",
+  // authenticateToken,
+  roomController.deleteRoom
 );
 
 module.exports = router;
