@@ -27,10 +27,21 @@ exports.createHotel = async (req, res) => {
       connectivity: JSON.parse(req.body.facility).connectivity ? JSON.parse(req.body.facility).connectivity : []
     }
 
-    let ammenities = {
-      bathroom: JSON.parse(req.body.ammenities).bathroom ? JSON.parse(req.body.ammenities).bathroom : [],
-      inRoom: JSON.parse(req.body.ammenities).inRoom ? JSON.parse(req.body.ammenities).inRoom : [],
+    let ammenities = {}
+
+    if(req.body.ammenities) {
+      ammenities = {
+        bathroom: JSON.parse(req.body.ammenities).bathroom ? JSON.parse(req.body.ammenities).bathroom : [],
+        inRoom: JSON.parse(req.body.ammenities).inRoom ? JSON.parse(req.body.ammenities).inRoom : [],
+      }
+    }  else {
+      ammenities = {
+        bathroom: [],
+        inRoom: [],
+      }
     }
+
+    console.log(req.files);
 
     let data = {
       contactNo: JSON.parse(req.body.contactDetails).contactNo,
@@ -119,25 +130,24 @@ exports.updateHotel = async (req, res) => {
   }
 
   try {
-    const hotel = await Hotel.findOne({vendor_id: req.params.id});
+    const hotel = await Hotel.findOneAndUpdate(
+      { vendor_id: req.params.id },
+      { $set: req.body },
+      { new: true, runValidators: true }
+    );
+
+    console.log(hotel);
+
     if (!hotel) {
       return res.status(404).json({ error: 'Hotel not found!' });
     }
 
-    allowedFields.forEach(field => {
-      if (req.body[field] !== undefined) {
-        hotel[field] = req.body[field];
-      }
-    });
-
-    console.log(hotel.ammenities);
-
-    await hotel.save();
     res.json({ status: true, message: 'Hotel data updated successfully', data: hotel });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 };
+
 
 exports.deleteHotel = async (req, res) => {
   try {
