@@ -23,12 +23,11 @@ const userSchema = new mongoose.Schema({
   },
   phoneNumber: {
     type: Number,
-    required: true,
     unique: true,
   },
   otp: {
     type: String,
-    required: true,
+    // required: true,
   },
   otpVerify: {
     type: Boolean,

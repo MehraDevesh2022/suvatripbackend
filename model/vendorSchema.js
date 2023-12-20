@@ -37,7 +37,6 @@ const vendorSchema = new mongoose.Schema({
   },
   otp: {
     type: String,
-    required: true,
   },
   otpVerify: {
     type: Boolean,
