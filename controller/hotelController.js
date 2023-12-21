@@ -120,7 +120,8 @@ exports.updateHotel = async (req, res) => {
     'latitude',
     'longitude',
     'promoted',
-    'ammenities'
+    'ammenities',
+    'description'
   ];
 
   const receivedFields = Object.keys(req.body);

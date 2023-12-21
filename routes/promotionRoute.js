@@ -5,35 +5,28 @@ const authenticateToken = require("../middleWare/auth"); // Assuming you have an
 
 // Create a new promotion
 router.post(
-  "/promotions",
+  "/",
   authenticateToken,
   promotionController.createPromotion
 );
 
 // Get all promotions
 router.get(
-  "/promotions",
+  "/:id",
   authenticateToken,
   promotionController.getAllPromotions
 );
 
-// Get a specific promotion by UUID
-router.get(
-  "/promotions/:id",
-  authenticateToken,
-  promotionController.getPromotionById
-);
-
 // Update a promotion by UUID
 router.patch(
-  "/promotions/:id",
+  "/:id",
   authenticateToken,
   promotionController.updatePromotion
 );
 
 // Delete a promotion by UUID
 router.delete(
-  "/promotions/:id",
+  "/:id",
   authenticateToken,
   promotionController.deletePromotion
 );

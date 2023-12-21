@@ -4,13 +4,13 @@ const reviewController = require("../controller/reviewController");
 const authenticateToken = require("../middleWare/auth"); 
 
 // Create a new review
-router.post("/reviews", authenticateToken, reviewController.createReview);
+router.post("/", reviewController.createReview);
 
 // Get all reviews
-router.get("/reviews", authenticateToken, reviewController.getAllReviews);
+router.get("/:id", reviewController.getAllReviews);
 
 // Get a specific review by review_id
-router.get("/reviews/:id", authenticateToken, reviewController.getReviewById);
+// router.get("/reviews/:id", authenticateToken, reviewController.getReviewById);
 
 // Update a review by review_id
 router.patch("/reviews/:id", authenticateToken, reviewController.updateReview);

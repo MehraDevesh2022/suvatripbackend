@@ -27,33 +27,11 @@ exports.createBooking = async (req, res) => {
 
 exports.getAllBookings = async (req, res) => {
   try {
-    const bookings = await Booking.find().populate('hotel_id room_id user_id invoice_id promotion_id');
+    const bookings = await Booking.find({hotel_id: req.params.id}).populate('hotel_id room_id user_id invoice_id promotion_id');
     res.json({
       status: true,
       message: 'All bookings retrieved successfully',
       data: bookings
-    });
-  } catch (err) {
-    res.status(500).json({
-      status: false,
-      message: err.message
-    });
-  }
-};
-
-exports.getBookingsByID = async (req, res) => {
-  try {
-    const booking = await Booking.findById(req.params.id).populate('hotel_id room_id user_id invoice_id promotion_id');
-    if (!booking) {
-      return res.status(404).json({
-        status: false,
-        message: 'Booking not found'
-      });
-    }
-    res.json({
-      status: true,
-      message: 'Booking retrieved successfully',
-      data: booking
     });
   } catch (err) {
     res.status(500).json({

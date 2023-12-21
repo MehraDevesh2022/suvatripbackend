@@ -9,6 +9,7 @@ const path = require("path")
 const reviewRouter = require("./routes/reviewRoute");
 const invoiceRoute = require("./routes/invoiceRoute");
 const promotionRoute = require("./routes/promotionRoute");
+const bookingRoute = require("./routes/bookingRoute");
 const ratePlanRoute = require("./routes/ratePlanRoute");
 const hotelRouter = require("./routes/hotelRoute");
 const roomRouter = require("./routes/roomRoute");
@@ -47,10 +48,11 @@ app.use("/auth", authRouter); // Make sure to use the correct path here
 app.use("/auth", authRouter); // Make sure to use the correct path here
 app.use("/review", reviewRouter); 
 app.use("/invoice", invoiceRoute);
-// app.use("/promotion", promotionRoute);
+app.use("/promotion", promotionRoute);
 app.use("/rateplan", ratePlanRoute);
 app.use("/hotel", hotelRouter); // Adding the hotelRouter route
 app.use("/room", roomRouter);
+app.use("/reservation", bookingRoute);
 
 
 connectDB();
