@@ -5,7 +5,14 @@ const multerConfigs = require('../middleWare/multerConfig');
 exports.getAllHotels = async (req, res) => {
   try {
     const hotels = await Hotel.find();
-    res.json({ status: true, message: 'Hotel data fetched successfully', data: hotels });
+      if(!hotels){
+        return res.status(404).json({ error: 'Hotel not found!' });
+      }
+      if(req.isHotelAccess){
+        return res.json({ status: true, message: 'Hotel data fetched successfully', data: hotels , isHotelAccess: true});
+      }else{
+        return res.json({ status: true, message: 'Hotel data fetched successfully', data: hotels , isHotelAccess: false });
+      }
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
