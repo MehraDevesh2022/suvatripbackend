@@ -7,28 +7,28 @@ const authenticateToken = require("../middleWare/auth"); // Assuming you have an
 router.post(
   "/",
   authenticateToken,
-  promotionController.createBooking
+  bookingController.createBooking
 );
 
 // Get all promotions
 router.get(
   "/:id",
   authenticateToken,
-  promotionController.getAllBookings
+  bookingController.getAllBookings
 );
 
 // Update a promotion by UUID
 router.patch(
   "/:id",
   authenticateToken,
-  promotionController.updateBooking
+  bookingController.updateBooking
 );
 
 // Delete a promotion by UUID
 router.delete(
   "/:id",
   authenticateToken,
-  promotionController.deleteBooking
+  bookingController.deleteBooking
 );
 
 module.exports = router;
