@@ -238,6 +238,7 @@ const generateToken = (user) => {
     id: user._id,
     name: user.name,
     email: user.email,
+    role: user.role
   };
   return jwt.sign(payLoad, config.JWT_SECRET, { expiresIn: "1h" });
 };
