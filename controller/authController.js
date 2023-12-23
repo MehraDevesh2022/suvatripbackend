@@ -41,6 +41,10 @@ const signupVendor = async (req, res) => {
   try {
      const { name, email, password } = req.body;
 
+     const hash = await bcrypt.hash(password, 10);
+
+     console.log(hash);
+
      if (!name || !email || !password) {
        return res.status(400).json({ message: "Please enter all fields" });
      }
