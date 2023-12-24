@@ -1,6 +1,16 @@
 // controllers/hotelController.js
-const Hotel = require("../model/hotelSchema");
-const multerConfigs = require("../middleWare/multerConfig");
+const Hotel = require('../model/hotelSchema');
+const multerConfigs = require('../middleWare/multerConfig');
+const nodemailer = require('nodemailer');
+
+// Create a SMTP transporter
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'suvatrip1@gmail.com',
+    pass: 'xnsp utow mxwy ajnz'
+  }
+});
 
 exports.getAllHotels = async (req, res) => {
   try {
@@ -53,21 +63,15 @@ exports.createHotel = async (req, res) => {
 
     if (req.body.ammenities) {
       ammenities = {
-        bathroom: JSON.parse(req.body.ammenities).bathroom
-          ? JSON.parse(req.body.ammenities).bathroom
-          : [],
-        inRoom: JSON.parse(req.body.ammenities).inRoom
-          ? JSON.parse(req.body.ammenities).inRoom
-          : [],
-      };
+        bathroom: JSON.parse(req.body.ammenities).bathroom ? JSON.parse(req.body.ammenities).bathroom : [],
+        inRoom: JSON.parse(req.body.ammenities).inRoom ? JSON.parse(req.body.ammenities).inRoom : [],
+      }
     } else {
       ammenities = {
         bathroom: [],
         inRoom: [],
       };
     }
-
-    console.log(req.files);
 
     let data = {
       contactNo: JSON.parse(req.body.contactDetails).contactNo,
@@ -115,11 +119,23 @@ exports.createHotel = async (req, res) => {
       });
 
       const newHotel = await hotel.save();
-      res.json({
-        status: true,
-        message: "Hotel created successfully",
-        data: newHotel,
+
+      const mailOptions = {
+        from: 'suvatrip1@gmail.com',
+        to: req.body.email,
+        subject: 'Registration Successful',
+        text: 'Hello,\n\nYour registration was successful. Welcome aboard!'
+      };
+    
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error('Error occurred:', error);
+        } else {
+          console.log('Email sent:', info.response);
+        }
       });
+      
+      res.json({ status: true, message: 'Hotel created successfully', data: newHotel });
     } catch (err) {
       res.status(400).json({ message: err.message });
     }

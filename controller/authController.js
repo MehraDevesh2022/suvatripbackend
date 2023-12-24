@@ -346,9 +346,10 @@ const sendOtpViaSociair = async (number, otp) => {
 
 const generateToken = (user) => {
   const payLoad = {
-    id: user?._id,
-    name: user?.username,
-    email: user?.email,
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role
   };
   return jwt.sign(payLoad, config.JWT_SECRET, { expiresIn: "1h" });
 };

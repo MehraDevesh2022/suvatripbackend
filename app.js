@@ -13,6 +13,7 @@ const bookingRoute = require("./routes/bookingRoute");
 const ratePlanRoute = require("./routes/ratePlanRoute");
 const hotelRouter = require("./routes/hotelRoute");
 const roomRouter = require("./routes/roomRoute");
+const inboxRoute = require("./routes/inboxRoute");
 require("dotenv").config({ path: ".env"});
 
 const  config  = require("./config/config");
@@ -53,7 +54,7 @@ app.use("/rateplan", ratePlanRoute);
 app.use("/hotel", hotelRouter); // Adding the hotelRouter route
 app.use("/room", roomRouter);
 app.use("/reservation", bookingRoute);
-
+app.use("/inbox", inboxRoute);
 
 connectDB();
 app.listen(config.PORT, () => {

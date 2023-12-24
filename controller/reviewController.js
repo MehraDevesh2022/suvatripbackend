@@ -4,9 +4,9 @@ exports.getAllReviews = async (req, res) => {
   try {
     let filter = {};
 
-    if (req.query.filter && req.query.hotelId) {
+    if (req.query.filter) {
       const filterType = req.query.filter;
-      const {id} = req.params;
+      const { id } = req.params;
 
       const today = new Date();
       let startDate = new Date();
@@ -23,37 +23,67 @@ exports.getAllReviews = async (req, res) => {
 
       filter = {
         created_at: { $gte: startDate, $lte: today },
-        hotel_id: id
+        hotel_id: id,
       };
     }
 
-    const reviews = await Review.find(filter);
+    const reviews = await Review.find(filter).populate('user_id', 'username');
 
     const totalReviews = reviews.length;
-    const ratingCounts = reviews.reduce((acc, review) => {
-      acc[review.rating] = (acc[review.rating] || 0) + 1;
-      return acc;
-    }, {});
-
+    const ratingCounts = {
+      'oneStar': 0,
+      'twoStars': 0,
+      'threeStars': 0,
+      'fourStars': 0,
+      'fiveStars': 0,
+    };
     const ratingPercentages = {};
-    for (let rating = 1; rating <= 5; rating++) {
-      const count = ratingCounts[rating] || 0;
-      ratingPercentages[rating] = (count / totalReviews) * 100;
+
+    reviews.forEach((review) => {
+      switch (review.rating) {
+        case 1:
+          ratingCounts['oneStar'] += 1;
+          break;
+        case 2:
+          ratingCounts['twoStars'] += 1;
+          break;
+        case 3:
+          ratingCounts['threeStars'] += 1;
+          break;
+        case 4:
+          ratingCounts['fourStars'] += 1;
+          break;
+        case 5:
+          ratingCounts['fiveStars'] += 1;
+          break;
+        default:
+          break;
+      }
+    });
+
+    for (const key in ratingCounts) {
+      if (ratingCounts.hasOwnProperty(key)) {
+        const count = ratingCounts[key];
+        ratingPercentages[key] = (count / totalReviews) * 100;
+      }
     }
 
     res.json({
       status: true,
       message: 'Reviews retrieved successfully',
       data: reviews,
+      ratingCounts,
       ratingPercentages,
     });
   } catch (err) {
     res.status(500).json({
       status: false,
-      message: err.message
+      message: err.message,
     });
   }
 };
+
+
 
 
 exports.createReview = async (req, res) => {
