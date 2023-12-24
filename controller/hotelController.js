@@ -186,7 +186,7 @@ exports.getHotelById = async (req, res) => {
     console.log(id , "id");
     const { fields } = req.query;
 
-    let query = Hotel.findOne({ vendor_id: id });
+    let query = Hotel.findOne({ _id: id });
 
     if (fields) {
       const fieldsArray = fields.split(",");
@@ -194,6 +194,7 @@ exports.getHotelById = async (req, res) => {
     }
 
     const hotels = await query.exec();
+    console.log(hotels , "hotels");
     res.json({
       status: true,
       message: "Hotel data fetched successfully",

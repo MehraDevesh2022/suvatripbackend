@@ -166,12 +166,11 @@ async function getUserByFacebookIdAndAccessToken(accessToken, userId) {
   return result;
 }
 
-
 // SIGN UP VENDOR
 const signupVendor = async (req, res) => {
   try {
     const { username, email, password, phone } = req.body;
-   console.log("req.body", req.body);
+    console.log("req.body", req.body);
     if (!username || !email || !password) {
       return res.status(400).json({ message: "Please enter all fields" });
     }
@@ -233,12 +232,11 @@ const signupAdmin = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     console.log("trying loggin");
-    const { email, password, role  } = req.body;
+    const { email, password, role } = req.body;
     console.log("role", role, email, password);
     if (!role || !email || !password) {
       return res.status(400).json({ message: "Please enter all fields" });
     }
-
 
     if (role === "user") {
       const user = await User.findOne({ email });
@@ -349,7 +347,7 @@ const generateToken = (user) => {
     id: user._id,
     name: user.name,
     email: user.email,
-    role: user.role
+    role: user.role,
   };
   return jwt.sign(payLoad, config.JWT_SECRET, { expiresIn: "1h" });
 };
