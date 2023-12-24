@@ -5,7 +5,7 @@ const authenticateToken = (req, res, next) => {
   // Get the token from the Authorization header
   const authorizationHeader = req.headers.authorization;
 
-  console.log("authorizationHeader", authorizationHeader);
+ 
 
   // Check if the user is logged in with a valid token
   if (authorizationHeader) {
