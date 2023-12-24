@@ -44,7 +44,7 @@ app.get("/", (req, res) => {
 });
 
 // routes
-app.use("/auth", authRouter); // Make sure to use the correct path here
+// app.use("/auth", authRouter); // Make sure to use the correct path here
 // routes
 app.use("/auth", authRouter); // Make sure to use the correct path here
 app.use("/review", reviewRouter); 

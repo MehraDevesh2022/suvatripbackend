@@ -35,9 +35,11 @@ const vendorSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  phoneNumber : {
+    type: String,
+  },
   otp: {
     type: String,
-    required: true,
   },
   otpVerify: {
     type: Boolean,

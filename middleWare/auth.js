@@ -1,18 +1,37 @@
 const jwt = require("jsonwebtoken");
-const  config  = require("../config/config");
+const config = require("../config/config");
+
 const authenticateToken = (req, res, next) => {
-  const token = req.cookies.token;
-   console.log(token , "token");
-  if (!token) {
-    return res.status(401).json({ message: "Unauthorized" });
+  // Get the token from the Authorization header
+  const authorizationHeader = req.headers.authorization;
+
+ 
+
+  // Check if the user is logged in with a valid token
+  if (authorizationHeader) {
+    const token = authorizationHeader.split(" ")[1];
+
+    if (token) {
+      jwt.verify(token, config.JWT_SECRET, (err, user) => {
+        if (err) {
+          return res.status(403).json({ message: "Forbidden" });
+        }
+
+        req.user = user;
+        next();
+      });
+
+      return; // Exit the middleware if the user is logged in
+    }
   }
 
-  jwt.verify(token, config.JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ message: "Forbidden" });
-    req.user = user;
+  const hotelSecret = req.headers.my_secret;
 
+  if (hotelSecret === config.MY_SECRET) {
+    req.isHotelAccess = true;
     next();
-  });
+    return;
+  }
 };
 
 module.exports = authenticateToken;

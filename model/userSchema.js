@@ -29,6 +29,7 @@ const userSchema = new mongoose.Schema({
   otp: {
     type: String,
     // required: true,
+    // required: true,
   },
   otpVerify: {
     type: Boolean,
@@ -36,6 +37,7 @@ const userSchema = new mongoose.Schema({
   }
 });
 
+userSchema.index({ email: 1 }, { unique: true });
 const User = mongoose.model("User", userSchema);
 
 module.exports = User;

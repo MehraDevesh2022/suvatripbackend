@@ -15,29 +15,51 @@ const transporter = nodemailer.createTransport({
 exports.getAllHotels = async (req, res) => {
   try {
     const hotels = await Hotel.find();
-    res.json({ status: true, message: 'Hotel data fetched successfully', data: hotels });
+    if (!hotels) {
+      return res.status(404).json({ error: "Hotel not found!" });
+    }
+    if (req.isHotelAccess) {
+      return res.json({
+        status: true,
+        message: "Hotel data fetched successfully",
+        data: hotels,
+        isHotelAccess: true,
+      });
+    } else {
+      return res.json({
+        status: true,
+        message: "Hotel data fetched successfully",
+        data: hotels,
+        isHotelAccess: false,
+      });
+    }
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
 exports.createHotel = async (req, res) => {
-
   const { uploadPicture } = multerConfigs;
 
   uploadPicture(req, res, async function (err) {
     if (err) {
       console.log(err);
-      return res.status(400).send('Error uploading files.');
+      return res.status(400).send("Error uploading files.");
     }
 
     let facilities = {
-      accommodation: JSON.parse(req.body.facility).accommodation ? JSON.parse(req.body.facility).accommodation : [],
-      recreation: JSON.parse(req.body.facility).recreation ? JSON.parse(req.body.facility).recreation : [],
-      connectivity: JSON.parse(req.body.facility).connectivity ? JSON.parse(req.body.facility).connectivity : []
-    }
+      accommodation: JSON.parse(req.body.facility).accommodation
+        ? JSON.parse(req.body.facility).accommodation
+        : [],
+      recreation: JSON.parse(req.body.facility).recreation
+        ? JSON.parse(req.body.facility).recreation
+        : [],
+      connectivity: JSON.parse(req.body.facility).connectivity
+        ? JSON.parse(req.body.facility).connectivity
+        : [],
+    };
 
-    let ammenities = {}
+    let ammenities = {};
 
     if (req.body.ammenities) {
       ammenities = {
@@ -48,7 +70,7 @@ exports.createHotel = async (req, res) => {
       ammenities = {
         bathroom: [],
         inRoom: [],
-      }
+      };
     }
 
     let data = {
@@ -63,12 +85,28 @@ exports.createHotel = async (req, res) => {
       parking: JSON.parse(req.body.parking),
       transportation: JSON.parse(req.body.transportation),
       description: JSON.parse(req.body.description),
-    }
+    };
 
-    const pictureLinks = req.files['picture'].map(file => ({ link: `${process.env.HOST}${":" + process.env.PORT}/uploads/propertyPicture/${file.filename}` }));
-    const roomPictureLinks = req.files['roomPicture'].map(file => ({ link: `${process.env.HOST}${":" + process.env.PORT}/uploads/roomPicture/${file.filename}` }));
-    const areaPictureLinks = req.files['areaPicture'].map(file => ({ link: `${process.env.HOST}${":" + process.env.PORT}/uploads/areaPicture/${file.filename}` }));
-    const documentLinks = req.files['file'].map(file => ({ link: `${process.env.HOST}${":" + process.env.PORT}/uploads/documents/${file.filename}` }));
+    const pictureLinks = req.files["picture"].map((file) => ({
+      link: `${process.env.HOST}${
+        ":" + process.env.PORT
+      }/uploads/propertyPicture/${file.filename}`,
+    }));
+    const roomPictureLinks = req.files["roomPicture"].map((file) => ({
+      link: `${process.env.HOST}${":" + process.env.PORT}/uploads/roomPicture/${
+        file.filename
+      }`,
+    }));
+    const areaPictureLinks = req.files["areaPicture"].map((file) => ({
+      link: `${process.env.HOST}${":" + process.env.PORT}/uploads/areaPicture/${
+        file.filename
+      }`,
+    }));
+    const documentLinks = req.files["file"].map((file) => ({
+      link: `${process.env.HOST}${":" + process.env.PORT}/uploads/documents/${
+        file.filename
+      }`,
+    }));
 
     try {
       const hotel = new Hotel({
@@ -77,7 +115,7 @@ exports.createHotel = async (req, res) => {
         propertyPicture: pictureLinks,
         roomPicture: roomPictureLinks,
         areaPicture: areaPictureLinks,
-        document: documentLinks
+        document: documentLinks,
       });
 
       const newHotel = await hotel.save();
@@ -104,55 +142,99 @@ exports.createHotel = async (req, res) => {
   });
 };
 
+// Function to filter hotels based on location
+exports.filterHotels = async (req, res) => {
+  try {
+    const { location, startDate, endDate } = req.query;
+    console.log(location);
+    // Validate and sanitize input
+    if (!location || typeof location !== "string") {
+      return res.status(400).json({ error: "Invalid location parameter" });
+    }
+
+    // Trim leading and trailing whitespaces from the location
+    const sanitizedLocation = location.trim();
+
+    // Check if the location is not an empty string after trimming
+    if (!sanitizedLocation) {
+      return res
+        .status(400)
+        .json({ error: "Location parameter cannot be empty" });
+    }
+
+    // Perform case-insensitive search for hotels in the specified location
+    const filteredHotels = await Hotel.find({
+      country: { $regex: new RegExp(`^${sanitizedLocation}$`, "i") },
+    });
+    console.log(filteredHotels, "filteredHotels");
+    res
+      .status(200)
+      .json({
+        status: true,
+        message: "Hotel data fetched successfully",
+        data: filteredHotels,
+      });
+  } catch (error) {
+    console.error("Error filtering hotels:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 exports.getHotelById = async (req, res) => {
   try {
     const { id } = req.params;
+    console.log(id , "id");
     const { fields } = req.query;
 
     let query = Hotel.findOne({ vendor_id: id });
 
     if (fields) {
-      const fieldsArray = fields.split(',');
-      query = query.select(fieldsArray.join(' '));
+      const fieldsArray = fields.split(",");
+      query = query.select(fieldsArray.join(" "));
     }
 
     const hotels = await query.exec();
-    res.json({ status: true, message: 'Hotel data fetched successfully', data: hotels });
+    res.json({
+      status: true,
+      message: "Hotel data fetched successfully",
+      data: hotels,
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-
 exports.updateHotel = async (req, res) => {
   const allowedFields = [
-    'UUID',
-    'vendor_id',
-    'propertyName',
-    'contactNo',
-    'country',
-    'city',
-    'address',
-    'propertyType',
-    'roomsNo',
-    'currency',
-    'photos',
-    'facilities',
-    'hotelRules',
-    'paymentPolicy',
-    'parking',
-    'latitude',
-    'longitude',
-    'promoted',
-    'ammenities',
-    'description'
+    "UUID",
+    "vendor_id",
+    "propertyName",
+    "contactNo",
+    "country",
+    "city",
+    "address",
+    "propertyType",
+    "roomsNo",
+    "currency",
+    "photos",
+    "facilities",
+    "hotelRules",
+    "paymentPolicy",
+    "parking",
+    "latitude",
+    "longitude",
+    "promoted",
+    "ammenities",
+    "description",
   ];
 
   const receivedFields = Object.keys(req.body);
-  const isValidOperation = receivedFields.every(field => allowedFields.includes(field));
+  const isValidOperation = receivedFields.every((field) =>
+    allowedFields.includes(field)
+  );
 
   if (!isValidOperation) {
-    return res.status(400).json({ error: 'Invalid fields in request!' });
+    return res.status(400).json({ error: "Invalid fields in request!" });
   }
 
   try {
@@ -165,25 +247,28 @@ exports.updateHotel = async (req, res) => {
     console.log(hotel);
 
     if (!hotel) {
-      return res.status(404).json({ error: 'Hotel not found!' });
+      return res.status(404).json({ error: "Hotel not found!" });
     }
 
-    res.json({ status: true, message: 'Hotel data updated successfully', data: hotel });
+    res.json({
+      status: true,
+      message: "Hotel data updated successfully",
+      data: hotel,
+    });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
 };
 
-
 exports.deleteHotel = async (req, res) => {
   try {
     const hotel = await Hotel.findById(req.params.id);
     if (!hotel) {
-      return res.status(404).json({ error: 'Hotel not found!' });
+      return res.status(404).json({ error: "Hotel not found!" });
     }
 
     await hotel.remove();
-    res.json({ status: true, message: 'Hotel deleted successfully' });
+    res.json({ status: true, message: "Hotel deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
