@@ -2,11 +2,50 @@ const Review = require("../model/reviewSchema");
 
 exports.getAllReviews = async (req, res) => {
   try {
-    const reviews = await Review.find().populate('hotel_id user_id');
+    let filter = {};
+
+    if (req.query.filter && req.query.hotelId) {
+      const filterType = req.query.filter;
+      const {id} = req.params;
+
+      const today = new Date();
+      let startDate = new Date();
+
+      if (filterType === 'last30days') {
+        startDate.setDate(today.getDate() - 30);
+      } else if (filterType === '3months') {
+        startDate.setMonth(today.getMonth() - 3);
+      } else if (filterType === '6months') {
+        startDate.setMonth(today.getMonth() - 6);
+      } else if (filterType === '12months') {
+        startDate.setFullYear(today.getFullYear() - 1);
+      }
+
+      filter = {
+        created_at: { $gte: startDate, $lte: today },
+        hotel_id: id
+      };
+    }
+
+    const reviews = await Review.find(filter);
+
+    const totalReviews = reviews.length;
+    const ratingCounts = reviews.reduce((acc, review) => {
+      acc[review.rating] = (acc[review.rating] || 0) + 1;
+      return acc;
+    }, {});
+
+    const ratingPercentages = {};
+    for (let rating = 1; rating <= 5; rating++) {
+      const count = ratingCounts[rating] || 0;
+      ratingPercentages[rating] = (count / totalReviews) * 100;
+    }
+
     res.json({
       status: true,
-      message: 'All reviews retrieved successfully',
-      data: reviews
+      message: 'Reviews retrieved successfully',
+      data: reviews,
+      ratingPercentages,
     });
   } catch (err) {
     res.status(500).json({
@@ -15,6 +54,7 @@ exports.getAllReviews = async (req, res) => {
     });
   }
 };
+
 
 exports.createReview = async (req, res) => {
   try {

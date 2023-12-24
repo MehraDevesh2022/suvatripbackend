@@ -23,13 +23,15 @@ const hotelSchema = new mongoose.Schema({
     roomPicture: { type: Array, required: true },
     areaPicture: { type: Array, required: true },
     facilities: { type: Object, required: true },
+    ammenities: { type: Object, required: true },
     hotelRules: { type: Object, required: true },
     paymentPolicy: { type: Object, required: true },
     parking: { type: Object, required: true },
     transportation: { type: Object, required: true },
     latitude: { type: Number },
     longitude: { type: Number },
-    promoted: { type: Boolean }
+    promoted: { type: Boolean },
+    description: { type: String },
 });
 
 const Hotel = mongoose.model('Hotel', hotelSchema);

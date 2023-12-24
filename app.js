@@ -4,16 +4,21 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const connectDB = require("./db/db");
 const authRouter = require("./routes/authRoute");
+const path = require("path")
 
 const reviewRouter = require("./routes/reviewRoute");
 const invoiceRoute = require("./routes/invoiceRoute");
 const promotionRoute = require("./routes/promotionRoute");
+const bookingRoute = require("./routes/bookingRoute");
 const ratePlanRoute = require("./routes/ratePlanRoute");
 const hotelRouter = require("./routes/hotelRoute");
+const roomRouter = require("./routes/roomRoute");
 require("dotenv").config({ path: ".env"});
 
 const  config  = require("./config/config");
 var cors = require('cors')
+
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 app.use(cors());
 
@@ -43,9 +48,11 @@ app.get("/", (req, res) => {
 app.use("/auth", authRouter); // Make sure to use the correct path here
 app.use("/review", reviewRouter); 
 app.use("/invoice", invoiceRoute);
-// app.use("/promotion", promotionRoute);
+app.use("/promotion", promotionRoute);
 app.use("/rateplan", ratePlanRoute);
 app.use("/hotel", hotelRouter); // Adding the hotelRouter route
+app.use("/room", roomRouter);
+app.use("/reservation", bookingRoute);
 
 
 connectDB();

@@ -20,7 +20,11 @@ const reviewSchema = new mongoose.Schema({
   },
   created_at: {
     type: Date,
-    default: Date.now,
+    default: () => {
+      const twoMonthsAgo = new Date();
+      twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+      return twoMonthsAgo;
+    },
   },
 
 });

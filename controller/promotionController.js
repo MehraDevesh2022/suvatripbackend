@@ -27,33 +27,11 @@ exports.createPromotion = async (req, res) => {
 
 exports.getAllPromotions = async (req, res) => {
   try {
-    const promotions = await Promotion.find().populate('room_id');
+    const promotions = await Promotion.find({hotel_id: req.params.id}).populate('room_id');
     res.json({
       status: true,
       message: 'All promotions retrieved successfully',
       data: promotions
-    });
-  } catch (err) {
-    res.status(500).json({
-      status: false,
-      message: err.message
-    });
-  }
-};
-
-exports.getPromotionById = async (req, res) => {
-  try {
-    const promotion = await Promotion.findById(req.params.id).populate('room_id');
-    if (!promotion) {
-      return res.status(404).json({
-        status: false,
-        message: 'Promotion not found'
-      });
-    }
-    res.json({
-      status: true,
-      message: 'Promotion retrieved successfully',
-      data: promotion
     });
   } catch (err) {
     res.status(500).json({

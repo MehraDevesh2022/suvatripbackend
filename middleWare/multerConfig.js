@@ -4,13 +4,13 @@ const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     let destination;
     if (file.fieldname === 'picture') {
-      destination = 'uploads/propertyPicture/';
+      destination = 'public/uploads/propertyPicture/';
     } else if (file.fieldname === 'roomPicture') {
-      destination = 'uploads/roomPicture/';
+      destination = 'public/uploads/roomPicture/';
     } else if (file.fieldname === 'areaPicture') {
-      destination = 'uploads/areaPicture/';
+      destination = 'public/uploads/areaPicture/';
     } else if (file.fieldname === 'file') {
-      destination = 'uploads/documents/';
+      destination = 'public/uploads/documents/';
     }
     cb(null, destination);
   },

@@ -2,16 +2,19 @@ const Room = require("../model/roomSchema");
 const generateUUID = require("../utils/createUUID");
 exports.createRoom = async (req, res) => {
   try {
-    const { hotelId, roomType, guests, beds, bathrooms, price } = req.body;
+    const { hotelId, roomType, guests, beds, bathroom, price, noOfRooms } = req.body;
 
     const newRoom = new Room({
       hotel_id: hotelId,
-      roomType,
-      guests,
-      beds,
-      bathrooms,
-      price
+      roomType: roomType,
+      guests: guests,
+      beds: beds,
+      bathroom: bathroom,
+      price: price,
+      noOfRooms: noOfRooms
     });
+
+    console.log(newRoom);
 
     const savedRoom = await newRoom.save();
 
@@ -22,10 +25,41 @@ exports.createRoom = async (req, res) => {
   }
 };
 
+exports.updateRoom = async (req, res) => {
+  try {
+    const roomId = req.params.id;
+    const { hotelId, roomType, guests, beds, bathroom, price, noOfRooms } = req.body;
+
+    console.log(roomId);
+
+    const updatedRoom = {
+      hotel_id: hotelId,
+      roomType: roomType,
+      guests: guests,
+      beds: beds,
+      bathroom: bathroom,
+      price: price,
+      noOfRooms: noOfRooms
+    };
+
+    const room = await Room.findByIdAndUpdate(roomId, updatedRoom, { new: true });
+
+    if (!room) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+
+    res.json({ status: true, message: 'Room updated successfully', data: room });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+
 exports.getAllRooms = async (req, res) => {
   try {
-    const {hotelId} = req.body;
-    const rooms = await Room.find({hotel_id: hotelId});
+    const {id} = req.params;
+    const rooms = await Room.find({hotel_id: id});
     res.json(rooms);
   } catch (error) {
     console.error(error);
@@ -35,7 +69,7 @@ exports.getAllRooms = async (req, res) => {
 
 exports.deleteRoom = async (req, res) => {
   try {
-    const room = await Room.findOneAndRemove({ UUID: req.params.id });
+    const room = await Room.findByIdAndDelete(req.params.id);
     if (!room) {
       return res.status(404).json({ error: "Room not found" });
     }
