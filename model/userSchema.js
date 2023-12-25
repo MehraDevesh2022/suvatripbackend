@@ -11,7 +11,6 @@ const userSchema = new mongoose.Schema({
   username: {
     type: String,
     required: true,
-    unique: true,
   },
   password: {
     type: String,
@@ -23,17 +22,16 @@ const userSchema = new mongoose.Schema({
   },
   phoneNumber: {
     type: Number,
-    // required: true,
-    unique: true,
+    required: true,
   },
   otp: {
     type: String,
-    // required: true,
-    // required: true,
+    required: true,
   },
   otpVerify: {
     type: Boolean,
     default: false,
+    required: true
   }
 });
 

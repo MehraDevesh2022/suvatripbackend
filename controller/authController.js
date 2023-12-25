@@ -8,18 +8,32 @@ const axios = require("axios");
 const GoogleAuth = require("../model/googleAuthSchema");
 const FacebookAuth = require("../model/facebookAuth.js");
 const Hotel = require('../model/hotelSchema');
+const nodemailer = require('nodemailer');
+
+// Create a SMTP transporter
+const transporter = nodemailer.createTransport({
+  host: 'smtp-relay.brevo.com',
+  port: '587',
+  auth: {
+    user: 'suvatrip1@gmail.com',
+    pass: 'aHSmbLgWfVqr54Uy'
+  }
+});
+
 ///SIGN UP USER
 const signupUser = async (req, res) => {
   try {
     console.log("trying signup");
-    const { userName, email, password, phone } = req.body;
+    const { username, email, password, phoneNumber } = req.body;
 
-    if (!userName || !email || !password) {
+    if (!username || !email || !password) {
       return res.status(400).json({ message: "Please enter all fields" });
     }
 
     // Check for existing user by email
     const existingUser = await User.findOne({ email });
+
+    console.log(existingUser, 'eee');
 
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
@@ -28,15 +42,34 @@ const signupUser = async (req, res) => {
     // If email is unique, proceed with user creation
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    let otp = generateOTP()
+
     const user = await User.create({
-      username: userName,
+      username: username,
       password: hashedPassword,
       email,
-      phoneNumber: phone,
+      phoneNumber: phoneNumber,
       role: "user",
+      otp: otp,
+      otpVerify: false
     });
 
     const token = generateToken(user);
+
+    const mailOptions = {
+      from: 'suvatrip1@gmail.com',
+      to: email,
+      subject: 'Registration Successful',
+      text: `Hello,\n\nHere if you otp for vendor registration: ${otp}`
+    };
+  
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error occurred:', error);
+      } else {
+        console.log('Email sent:', info.response);
+      }
+    });
     res.cookie("token", token, { httpOnly: true });
     res.status(201).json({ message: "User created successfully", token });
   } catch (error) {
@@ -49,6 +82,38 @@ const signupUser = async (req, res) => {
 
     console.error("Error creating user:", error);
     console.log(error);
+    res.status(500).json({ success: true, message: "Something went wrong" });
+  }
+};
+
+const userOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Please provide email and OTP" });
+    }
+
+    const existingVendor = await User.findOne({ email });
+
+    if (!existingVendor) {
+      return res.status(404).json({ message: "Vendor not found" });
+    }
+
+    if (existingVendor.otpVerify) {
+      return res.status(400).json({ message: "OTP has already been verified" });
+    }
+
+    if (existingVendor.otp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    existingVendor.otpVerify = true;
+    await existingVendor.save();
+
+    res.status(200).json({ success: true, message: "OTP verified successfully" });
+  } catch (error) {
+    console.error("Error verifying OTP:", error);
     res.status(500).json({ message: "Something went wrong" });
   }
 };
@@ -182,15 +247,34 @@ const signupVendor = async (req, res) => {
     }
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    let otp = generateOTP();
+
     const createvendor = await vendor.create({
       username: username,
       password: hashedPassword,
       phoneNumber: phone,
       email,
       role: "vendor",
+      otp: otp,
+      otpVerify: false
     });
 
     const token = generateToken(vendor);
+
+    const mailOptions = {
+      from: 'suvatrip1@gmail.com',
+      to: req.user.email,
+      subject: 'Registration Successful',
+      text: `Hello,\n\nHere if you otp for vendor registration: ${otp}`
+    };
+  
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error occurred:', error);
+      } else {
+        console.log('Email sent:', info.response);
+      }
+    });
 
     res
       .status(201)
@@ -200,6 +284,39 @@ const signupVendor = async (req, res) => {
     res.status(500).json({ message: "Something went wrong" });
   }
 };
+
+const vendorOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Please provide email and OTP" });
+    }
+
+    const existingVendor = await vendor.findOne({ email });
+
+    if (!existingVendor) {
+      return res.status(404).json({ message: "Vendor not found" });
+    }
+
+    if (existingVendor.otpVerify) {
+      return res.status(400).json({ message: "OTP has already been verified" });
+    }
+
+    if (existingVendor.otp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    existingVendor.otpVerify = true;
+    await existingVendor.save();
+
+    res.status(200).json({ message: "OTP verified successfully" });
+  } catch (error) {
+    console.error("Error verifying OTP:", error);
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
 
 //SIGN UP ADMIN
 const signupAdmin = async (req, res) => {
@@ -246,6 +363,10 @@ const loginUser = async (req, res) => {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
+      if(user.otpVerify===false) {
+        return res.status(400).json({ message: "User not registered" });
+      }
+
       const token = generateToken(user);
 
       // Send the token in the response
@@ -257,6 +378,10 @@ const loginUser = async (req, res) => {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
+      if(findvendor.otpVerify===false) {
+        return res.status(400).json({ message: "User not registered" });
+      }
+
       const token = generateToken(findvendor);
 
       // Send the token in the response
@@ -266,6 +391,10 @@ const loginUser = async (req, res) => {
 
       if (!findvendor || !bcrypt.compareSync(password, findvendor.password)) {
         return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      if(findvendor.otpVerify===false) {
+        return res.status(400).json({ message: "User not registered" });
       }
 
       const hotel = await Hotel.findOne({ vendor_id: findvendor._id })
@@ -362,6 +491,11 @@ const sendOtpViaSociair = async (number, otp) => {
 
 // genrate jwt token
 
+function generateOTP() {
+  const otp = Math.floor(100000 + Math.random() * 900000);
+  return otp.toString();
+}
+
 const generateToken = (user) => {
   const payLoad = {
     id: user._id,
@@ -389,11 +523,6 @@ const storeOTP = async (email, otp, expirationTime) => {
     throw error; // Handle the error as per your application's needs
   }
 };
-const generateOTP = () => {
-  // Generate a random six-digit OTP
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  return otp;
-};
 
 module.exports = {
   signupUser,
@@ -403,4 +532,6 @@ module.exports = {
   loginviamobile,
   signupGoogle,
   signUpFacebookAuth,
+  vendorOtp,
+  userOtp
 };
