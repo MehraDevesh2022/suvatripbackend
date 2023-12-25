@@ -106,8 +106,14 @@ exports.createHotel = async (req, res) => {
       }`,
       main: req.body.areaMain ? req.body.areaMain[index] : false
     }));
-    const documentLinks = req.files["file"].map((file) => ({
-      link: `${process.env.HOST}${":" + process.env.PORT}/uploads/documents/${
+    const taxDocumentLinks = req.files["taxFile"].map((file) => ({
+      link: `${process.env.HOST}${":" + process.env.PORT}/uploads/documents/tax/${
+        file.filename
+      }`,
+    }));
+
+    const propertyDocumentLinks = req.files["propertyFile"].map((file) => ({
+      link: `${process.env.HOST}${":" + process.env.PORT}/uploads/documents/property/${
         file.filename
       }`,
     }));
@@ -119,7 +125,8 @@ exports.createHotel = async (req, res) => {
         propertyPicture: pictureLinks,
         roomPicture: roomPictureLinks,
         areaPicture: areaPictureLinks,
-        document: documentLinks,
+        taxFile: taxDocumentLinks,
+        propertyFile: propertyDocumentLinks,
         vendor_id: req.user.id
       });
 

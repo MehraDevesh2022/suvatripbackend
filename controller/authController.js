@@ -232,6 +232,39 @@ async function getUserByFacebookIdAndAccessToken(accessToken, userId) {
   return result;
 }
 
+const editVendor = async (req, res) => {
+  try {
+    const { username, email, password, phone } = req.body;
+    const vendorId = req.params.vendorId;
+
+    const existingVendor = await vendor.findById(vendorId);
+    if (!existingVendor) {
+      return res.status(404).json({ message: "Vendor not found" });
+    }
+
+    if (username) {
+      existingVendor.username = username;
+    }
+    if (email) {
+      existingVendor.email = email;
+    }
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      existingVendor.password = hashedPassword;
+    }
+    if (phone) {
+      existingVendor.phoneNumber = phone;
+    }
+
+    await existingVendor.save();
+
+    res.status(200).json({ message: "Vendor updated successfully", updatedVendor: existingVendor });
+  } catch (error) {
+    console.error("Error updating vendor:", error);
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
 // SIGN UP VENDOR
 const signupVendor = async (req, res) => {
   try {
@@ -534,5 +567,6 @@ module.exports = {
   signupGoogle,
   signUpFacebookAuth,
   vendorOtp,
-  userOtp
+  userOtp,
+  editVendor
 };

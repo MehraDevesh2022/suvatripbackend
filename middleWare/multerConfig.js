@@ -9,8 +9,10 @@ const storage = multer.diskStorage({
       destination = 'public/uploads/roomPicture/';
     } else if (file.fieldname === 'areaPicture') {
       destination = 'public/uploads/areaPicture/';
-    } else if (file.fieldname === 'file') {
-      destination = 'public/uploads/documents/';
+    } else if (file.fieldname === 'taxFile') {
+      destination = 'public/uploads/documents/tax';
+    } else if (file.fieldname === 'propertyFile') {
+      destination = 'public/uploads/documents/property';
     }
     cb(null, destination);
   },
@@ -23,7 +25,8 @@ const uploadPicture = multer({ storage }).fields([
   { name: 'picture', maxCount: 5 },
   { name: 'roomPicture', maxCount: 5 },
   { name: 'areaPicture', maxCount: 5 },
-  { name: 'file', maxCount: 1 },
+  { name: 'taxFile', maxCount: 1 },
+  { name: 'propertyFile', maxCount: 1 }
 ]);
 
   module.exports = {

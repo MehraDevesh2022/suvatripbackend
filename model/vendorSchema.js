@@ -22,6 +22,9 @@ const vendorSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  name: {
+    type: String,
+  },
   country: {
     type: String,
   },
@@ -31,11 +34,7 @@ const vendorSchema = new mongoose.Schema({
   city: {
     type: String,
   },
-  status: {
-    type: Boolean,
-    default: false,
-  },
-  phoneNumber : {
+  contactNo : {
     type: String,
   },
   otp: {

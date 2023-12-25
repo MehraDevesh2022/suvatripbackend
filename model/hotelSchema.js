@@ -31,7 +31,9 @@ const hotelSchema = new mongoose.Schema({
     latitude: { type: Number },
     longitude: { type: Number },
     promoted: { type: Boolean },
-    description: { type: String },
+    description: { type: String, required: true },
+    taxFile: { type: Array, required: true },
+    propertyFile: { type: Array, required: true }
 });
 
 const Hotel = mongoose.model('Hotel', hotelSchema);
