@@ -263,7 +263,7 @@ const signupVendor = async (req, res) => {
 
     const mailOptions = {
       from: 'suvatrip1@gmail.com',
-      to: req.user.email,
+      to: email,
       subject: 'Registration Successful',
       text: `Hello,\n\nHere if you otp for vendor registration: ${otp}`
     };
@@ -287,6 +287,7 @@ const signupVendor = async (req, res) => {
 
 const vendorOtp = async (req, res) => {
   try {
+    console.log(req.body);
     const { email, otp } = req.body;
 
     if (!email || !otp) {
