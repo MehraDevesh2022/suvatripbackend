@@ -9,13 +9,19 @@ const roomSchema = new mongoose.Schema({
         unique: true,
         required: true
     },
-    hotel_id: { type: String, required: true },
+    hotel_id: { type: mongoose.Schema.Types.ObjectId, ref: "Hotel" },
     roomType: { type: String, required: true },
-    guests: { type: Number, required: true },
-    beds: { type: Number, required: true },
-    bathroom: { type: Number, required: true },
-    price: { type: Number, required: true },
-    noOfRooms: { type: Number, required: true },
+    guests: { type: String, required: true },
+    singleBed: { type: Number, required: true },
+    doubleBed: { type: Number, required: true },
+    kingBed: { type: Number, required: true },
+    superKingBed: { type: Number, required: true },
+    totalBeds: { type: Number, required: true },
+    bathroom: { type: String, required: true },
+    weekdayPrice: { type: String, required: true },
+    weekendPrice: { type: String, required: true },
+    nonRefundPrice: { type: String, required: true },
+    noOfRooms: { type: String, required: true },
 });
 
 const Room = mongoose.model('Room', roomSchema);

@@ -84,23 +84,26 @@ exports.createHotel = async (req, res) => {
       paymentPolicy: JSON.parse(req.body.paymentPolicy),
       parking: JSON.parse(req.body.parking),
       transportation: JSON.parse(req.body.transportation),
-      description: JSON.parse(req.body.description),
+      description: req.body.description
     };
 
-    const pictureLinks = req.files["picture"].map((file) => ({
+    const pictureLinks = req.files["picture"].map((file, index) => ({
       link: `${process.env.HOST}${
         ":" + process.env.PORT
       }/uploads/propertyPicture/${file.filename}`,
+      main: req.body.main ? req.body.main[index] : false
     }));
-    const roomPictureLinks = req.files["roomPicture"].map((file) => ({
+    const roomPictureLinks = req.files["roomPicture"].map((file, index) => ({
       link: `${process.env.HOST}${":" + process.env.PORT}/uploads/roomPicture/${
         file.filename
       }`,
+      main: req.body.roomMain ? req.body.roomMain[index] : false
     }));
-    const areaPictureLinks = req.files["areaPicture"].map((file) => ({
+    const areaPictureLinks = req.files["areaPicture"].map((file, index) => ({
       link: `${process.env.HOST}${":" + process.env.PORT}/uploads/areaPicture/${
         file.filename
       }`,
+      main: req.body.areaMain ? req.body.areaMain[index] : false
     }));
     const documentLinks = req.files["file"].map((file) => ({
       link: `${process.env.HOST}${":" + process.env.PORT}/uploads/documents/${
@@ -116,13 +119,14 @@ exports.createHotel = async (req, res) => {
         roomPicture: roomPictureLinks,
         areaPicture: areaPictureLinks,
         document: documentLinks,
+        vendor_id: req.user.id
       });
 
       const newHotel = await hotel.save();
 
       const mailOptions = {
         from: 'suvatrip1@gmail.com',
-        to: req.body.email,
+        to: req.user.email,
         subject: 'Registration Successful',
         text: 'Hello,\n\nYour registration was successful. Welcome aboard!'
       };
@@ -183,7 +187,7 @@ exports.filterHotels = async (req, res) => {
 exports.getHotelById = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(id , "id");
+
     const { fields } = req.query;
 
     let query = Hotel.findOne({ _id: id });
@@ -194,7 +198,7 @@ exports.getHotelById = async (req, res) => {
     }
 
     const hotels = await query.exec();
-    console.log(hotels , "hotels");
+
     res.json({
       status: true,
       message: "Hotel data fetched successfully",
@@ -244,8 +248,6 @@ exports.updateHotel = async (req, res) => {
       { $set: req.body },
       { new: true, runValidators: true }
     );
-
-    console.log(hotel);
 
     if (!hotel) {
       return res.status(404).json({ error: "Hotel not found!" });

@@ -10,7 +10,7 @@ router.get("/get-all-hotels",
   router.get("/filter", authenticateToken ,hotelController.filterHotels)
 
 router.post("/create-hotel",
-  // authenticateToken,
+  authenticateToken,
   hotelController.createHotel);
 
 router.get("/get-hotel-by-id/:id",

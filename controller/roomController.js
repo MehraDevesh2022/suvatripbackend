@@ -2,16 +2,22 @@ const Room = require("../model/roomSchema");
 const generateUUID = require("../utils/createUUID");
 exports.createRoom = async (req, res) => {
   try {
-    const { hotelId, roomType, guests, beds, bathroom, price, noOfRooms } = req.body;
+    const { hotelId, roomType, guNumber, bdNumber, bathNum, weekdayPrice, weekendPrice, nonRefundPrice, singleBedValue, kingSizeBedValue, largeBedValue, doubleBedValue, noOfRooms } = req.body;
 
     const newRoom = new Room({
       hotel_id: hotelId,
       roomType: roomType,
-      guests: guests,
-      beds: beds,
-      bathroom: bathroom,
-      price: price,
-      noOfRooms: noOfRooms
+      guests: parseInt(guNumber),
+      singleBed: parseInt(singleBedValue),
+      doubleBed: parseInt(doubleBedValue),
+      kingBed: parseInt(kingSizeBedValue),
+      superKingBed: parseInt(largeBedValue),
+      totalBeds: bdNumber,
+      bathroom: parseInt(bathNum),
+      weekdayPrice: parseInt(weekdayPrice),
+      weekendPrice: parseInt(weekendPrice),
+      nonRefundPrice: parseInt(nonRefundPrice),
+      noOfRooms: parseInt(noOfRooms)
     });
 
     console.log(newRoom);

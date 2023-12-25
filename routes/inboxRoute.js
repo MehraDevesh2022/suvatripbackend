@@ -15,8 +15,8 @@ router.get(
   inboxController.getMessages
 );
 
-router.patch(
-  "/:chatId",
+router.get(
+  "/get-by-id/:chatId",
   // authenticateToken,
   inboxController.getMessagesById
 );

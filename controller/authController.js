@@ -7,6 +7,7 @@ const config = require("../config/config");
 const axios = require("axios");
 const GoogleAuth = require("../model/googleAuthSchema");
 const FacebookAuth = require("../model/facebookAuth.js");
+const Hotel = require('../model/hotelSchema');
 ///SIGN UP USER
 const signupUser = async (req, res) => {
   try {
@@ -225,7 +226,7 @@ const signupAdmin = async (req, res) => {
     const token = generateToken(user);
     res.cookie("token", token, { httpOnly: true });
     res.status(201).json({ message: "Superadmin created successfully" });
-  } catch (error) {}
+  } catch (error) { }
 };
 
 //LOGIN IN USER
@@ -260,6 +261,23 @@ const loginUser = async (req, res) => {
 
       // Send the token in the response
       res.status(201).json({ token });
+    } else if (role === "vendor-admin") {
+      const findvendor = await vendor.findOne({ email });
+
+      if (!findvendor || !bcrypt.compareSync(password, findvendor.password)) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      const hotel = await Hotel.findOne({ vendor_id: findvendor._id })
+
+      if (!hotel) {
+        const token = generateToken(findvendor);
+
+        // Send the token in the response
+        res.status(201).json({ token, registration: false });
+      } else {
+        res.status(201).json({ registration: true });
+      }
     } else if (role === "admin") {
       const findadmin = await admin.findOne({ email });
 
@@ -271,6 +289,8 @@ const loginUser = async (req, res) => {
 
       // Send the token in the response
       res.status(201).json({ token });
+    } else {
+      res.status(400).json({ message: "User not found" });
     }
   } catch (error) {
     res.status(500).json({ message: "Something went wrong" });
