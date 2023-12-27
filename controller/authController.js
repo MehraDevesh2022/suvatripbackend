@@ -234,26 +234,26 @@ async function getUserByFacebookIdAndAccessToken(accessToken, userId) {
 
 const editVendor = async (req, res) => {
   try {
-    const { username, email, password, phone } = req.body;
-    const vendorId = req.params.vendorId;
+    console.log(req.body, 'rrrrr');
+    const { name, city, country, areaCode } = req.body;
+    const vendorId = req.user.id;
 
     const existingVendor = await vendor.findById(vendorId);
     if (!existingVendor) {
       return res.status(404).json({ message: "Vendor not found" });
     }
 
-    if (username) {
-      existingVendor.username = username;
+    if (name) {
+      existingVendor.name = name;
     }
-    if (email) {
-      existingVendor.email = email;
+    if (city) {
+      existingVendor.city = city
     }
-    if (password) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      existingVendor.password = hashedPassword;
+    if (country) {
+      existingVendor.country = country;
     }
-    if (phone) {
-      existingVendor.phoneNumber = phone;
+    if (areaCode) {
+      existingVendor.areaCode = areaCode;
     }
 
     await existingVendor.save();
