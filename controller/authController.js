@@ -7,17 +7,17 @@ const config = require("../config/config");
 const axios = require("axios");
 const GoogleAuth = require("../model/googleAuthSchema");
 const FacebookAuth = require("../model/facebookAuth.js");
-const Hotel = require('../model/hotelSchema');
-const nodemailer = require('nodemailer');
+const Hotel = require("../model/hotelSchema");
+const nodemailer = require("nodemailer");
 
 // Create a SMTP transporter
 const transporter = nodemailer.createTransport({
-  host: 'smtp-relay.brevo.com',
-  port: '587',
+  host: "smtp-relay.brevo.com",
+  port: "587",
   auth: {
-    user: 'suvatrip1@gmail.com',
-    pass: 'aHSmbLgWfVqr54Uy'
-  }
+    user: "suvatrip1@gmail.com",
+    pass: "aHSmbLgWfVqr54Uy",
+  },
 });
 
 ///SIGN UP USER
@@ -33,7 +33,7 @@ const signupUser = async (req, res) => {
     // Check for existing user by email
     const existingUser = await User.findOne({ email });
 
-    console.log(existingUser, 'eee');
+    console.log(existingUser, "eee");
 
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
@@ -42,7 +42,7 @@ const signupUser = async (req, res) => {
     // If email is unique, proceed with user creation
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    let otp = generateOTP()
+    let otp = generateOTP();
 
     const user = await User.create({
       username: username,
@@ -51,27 +51,27 @@ const signupUser = async (req, res) => {
       phoneNumber: phoneNumber,
       role: "user",
       otp: otp,
-      otpVerify: false
+      otpVerify: false,
     });
 
     const token = generateToken(user);
 
     const mailOptions = {
-      from: 'suvatrip1@gmail.com',
+      from: "suvatrip1@gmail.com",
       to: email,
-      subject: 'Registration Successful',
-      text: `Hello,\n\nHere if you otp for vendor registration: ${otp}`
+      subject: "Registration Successful",
+      text: `Hello,\n\nHere if you otp for user registration: ${otp}`,
     };
-  
+
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
-        console.error('Error occurred:', error);
+        console.error("Error occurred:", error);
       } else {
-        console.log('Email sent:', info.response);
+        console.log("Email sent:", info.response);
       }
     });
     res.cookie("token", token, { httpOnly: true });
-    res.status(201).json({ message: "User created successfully", token });
+    res.status(201).json({ message: "User created successfully", token  , success: true});
   } catch (error) {
     // Check if the error is due to duplicate key violation
     if (error.code === 11000) {
@@ -88,7 +88,11 @@ const signupUser = async (req, res) => {
 
 const userOtp = async (req, res) => {
   try {
-    const { email, otp } = req.body;
+    const { email, otp , isReset} = req.body;
+     if(isReset == undefined){
+      isReset = false
+     }
+    console.log(req.body);
 
     if (!email || !otp) {
       return res.status(400).json({ message: "Please provide email and OTP" });
@@ -100,8 +104,10 @@ const userOtp = async (req, res) => {
       return res.status(404).json({ message: "Vendor not found" });
     }
 
-    if (existingVendor.otpVerify) {
-      return res.status(400).json({ message: "OTP has already been verified" });
+    if(!isReset){
+      if (existingVendor.otpVerify) {
+        return res.status(400).json({ message: "OTP has already been verified" });
+      }
     }
 
     if (existingVendor.otp !== otp) {
@@ -111,7 +117,9 @@ const userOtp = async (req, res) => {
     existingVendor.otpVerify = true;
     await existingVendor.save();
 
-    res.status(200).json({ success: true, message: "OTP verified successfully" });
+    res
+      .status(200)
+      .json({ success: true, message: "OTP verified successfully" });
   } catch (error) {
     console.error("Error verifying OTP:", error);
     res.status(500).json({ message: "Something went wrong" });
@@ -137,18 +145,14 @@ const signupGoogle = async (req, res) => {
     const firstName = response.data.given_name || "";
     const lastName = response.data.family_name || "";
     const email = response.data.email || "";
-
-    console.log(firstName, lastName, email);
-
     const isUserExist = await GoogleAuth.findOne({ email });
-
     if (isUserExist) {
       const user = {
         _id: isUserExist._id,
         email: email,
         username: lastName ? `${firstName} ${lastName}` : firstName,
       };
-      console.log(user);
+
       const token = generateToken(user);
       return res
         .status(200)
@@ -258,7 +262,10 @@ const editVendor = async (req, res) => {
 
     await existingVendor.save();
 
-    res.status(200).json({ message: "Vendor updated successfully", updatedVendor: existingVendor });
+    res.status(200).json({
+      message: "Vendor updated successfully",
+      updatedVendor: existingVendor,
+    });
   } catch (error) {
     console.error("Error updating vendor:", error);
     res.status(500).json({ message: "Something went wrong" });
@@ -289,23 +296,23 @@ const signupVendor = async (req, res) => {
       email,
       role: "vendor",
       otp: otp,
-      otpVerify: false
+      otpVerify: false,
     });
 
     const token = generateToken(vendor);
 
     const mailOptions = {
-      from: 'suvatrip1@gmail.com',
+      from: "suvatrip1@gmail.com",
       to: email,
-      subject: 'Registration Successful',
-      text: `Hello,\n\nHere if you otp for vendor registration: ${otp}`
+      subject: "Registration Successful",
+      text: `Hello,\n\nHere if you otp for vendor registration: ${otp}`,
     };
-  
+
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
-        console.error('Error occurred:', error);
+        console.error("Error occurred:", error);
       } else {
-        console.log('Email sent:', info.response);
+        console.log("Email sent:", info.response);
       }
     });
 
@@ -351,7 +358,6 @@ const vendorOtp = async (req, res) => {
   }
 };
 
-
 //SIGN UP ADMIN
 const signupAdmin = async (req, res) => {
   try {
@@ -377,7 +383,7 @@ const signupAdmin = async (req, res) => {
     const token = generateToken(user);
     res.cookie("token", token, { httpOnly: true });
     res.status(201).json({ message: "Superadmin created successfully" });
-  } catch (error) { }
+  } catch (error) {}
 };
 
 //LOGIN IN USER
@@ -397,7 +403,7 @@ const loginUser = async (req, res) => {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      if(user.otpVerify===false) {
+      if (user.otpVerify === false) {
         return res.status(400).json({ message: "User not registered" });
       }
 
@@ -412,7 +418,7 @@ const loginUser = async (req, res) => {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      if(findvendor.otpVerify===false) {
+      if (findvendor.otpVerify === false) {
         return res.status(400).json({ message: "User not registered" });
       }
 
@@ -427,11 +433,11 @@ const loginUser = async (req, res) => {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      if(findvendor.otpVerify===false) {
+      if (findvendor.otpVerify === false) {
         return res.status(400).json({ message: "User not registered" });
       }
 
-      const hotel = await Hotel.findOne({ vendor_id: findvendor._id })
+      const hotel = await Hotel.findOne({ vendor_id: findvendor._id });
 
       if (!hotel) {
         const token = generateToken(findvendor);
@@ -451,7 +457,7 @@ const loginUser = async (req, res) => {
       const token = generateToken(findadmin);
 
       // Send the token in the response
-      res.status(201).json({ token });
+      res.status(201).json({ message: "Admin logged in successfully", token , success: true });
     } else {
       res.status(400).json({ message: "User not found" });
     }
@@ -490,15 +496,10 @@ const sendOtpViaSociair = async (number, otp) => {
       "Content-Type": "application/json",
       Accept: "application/json",
     };
-
     const payload = {
       message: `Your OTP is: ${otp}`,
       mobile: number,
     };
-
-    const response = await axios.post(url, payload, { headers });
-    console.log("Sociair API Response:", response.data);
-
     return response.data;
   } catch (error) {
     console.error("Error sending OTP via Sociair SMS:", error);
@@ -531,15 +532,15 @@ function generateOTP() {
 }
 
 const generateToken = (user) => {
+  console.log("user", user);
   const payLoad = {
-    id: user._id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
+    name: user?.username,
+    email: user?.email,
   };
   return jwt.sign(payLoad, config.JWT_SECRET, { expiresIn: "1h" });
 };
 
+// Store the OTP in the database
 const storeOTP = async (email, otp, expirationTime) => {
   try {
     // Update the user document with the new OTP information
@@ -547,8 +548,8 @@ const storeOTP = async (email, otp, expirationTime) => {
       { email },
       {
         $set: {
-          "otp.code": otp,
-          "otp.expirationTime": expirationTime,
+          "otp": otp,
+          // "otp.expirationTime": expirationTime,
         },
       }
     );
@@ -557,6 +558,166 @@ const storeOTP = async (email, otp, expirationTime) => {
     throw error; // Handle the error as per your application's needs
   }
 };
+
+
+  // forgot password
+
+  const forgotPassword = async (req, res) => {
+
+    try {
+
+      const { email } = req.body;
+      console.log(email , "email");
+      if (!email) {
+        return res.status(400).json({ message: "Please enter all fields" });
+      }
+      const user = await User.findOne({ email });
+      console.log(user);
+      if (!user) {
+        return res.status(400).json({ message: "User not found" });
+      }
+      // generate OTP]
+      const otp = generateOTP();
+      const expirationTime = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+      // Store the OTP in the database
+      await storeOTP(email, otp, expirationTime);
+
+      // send otp via email
+
+      const mailOptions = {
+        from: "suvatrip1@gmail.com",
+        to: email,
+        subject: "Forgot Password OTP",
+        text: `Hello,\n\nHere if you otp for forgot password: ${otp}`,
+      };
+
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error("Error occurred:", error);
+        } else {
+          console.log("Email sent:", info.response);
+        }
+      });
+
+      res.status(200).json({ message: "OTP sent successfully" });
+    }
+    catch (error) {
+      console.error("Error during login:", error);
+      res.status(500).json({ message: "Something went wrong" });
+    }
+
+  }
+
+   
+
+  const changePassword = async (req, res) => {
+    try {
+      const { email, newPassword  , otp} = req.body;
+      console.log(req.body);  
+  
+      if (!email || !newPassword || !otp) {
+        return res.status(400).json({ message: "Please provide email and new password" });
+      }
+  
+      const existingUser = await User.findOne({ email });
+  
+      if (!existingUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+  
+      if (!existingUser.otpVerify) {
+        return res.status(400).json({ message: "Please verify OTP first" });
+      }
+
+       const hashedPassword = await bcrypt.hash(newPassword, 10);
+        const token = generateToken(existingUser);
+        
+  
+      // Update the password and clear OTP-related fields
+      existingUser.password = hashedPassword;
+    
+      // existingUser.otp = null;
+      // existingUser.isOtpExpired = null;
+  
+      await existingUser.save();
+  
+      res.status(200).json({ success: true, message: "Password changed successfully" , token : token });
+    } catch (error) {
+      console.error("Error changing password:", error);
+      res.status(500).json({ message: "Something went wrong" });
+    }
+  };
+  
+      
+  
+ // profile data
+  const profile = async (req, res) => {
+     
+    try {
+      const { email } = req.user;
+      console.log(email , "email");
+      if (!email) {
+        return res.status(400).json({ message: "Please enter all fields" });
+      }
+      const user = await User.findOne({ email });
+      console.log(user);
+      if (!user) {
+        return res.status(400).json({ message: "User not found" });
+      }
+      res.status(200).json({ message: "User found successfully" , user : user });
+    }
+    catch (error) {
+      console.error("Error during login:", error);
+      res.status(500).json({ message: "Something went wrong" });
+    }
+
+  }
+
+
+      // update password
+
+const updatePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!userId || !currentPassword || !newPassword) {
+      return res.status(400).json({ message: "Please provide userId, currentPassword, and newPassword" });
+    }
+
+    const existingUser = await User.findById(userId);
+
+    if (!existingUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if the current password matches the one stored in the database
+    const isCurrentPasswordValid = await existingUser.comparePassword(currentPassword);
+
+    if (!isCurrentPasswordValid) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+
+    // Update the password
+    existingUser.password = newPassword;
+
+    await existingUser.save();
+
+    res.status(200).json({ success: true, message: "Password updated successfully" });
+  } catch (error) {
+    console.error("Error updating password:", error);
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+module.exports = {
+  updatePassword,
+};
+
+
+   
+  
+
 
 module.exports = {
   signupUser,
@@ -568,5 +729,8 @@ module.exports = {
   signUpFacebookAuth,
   vendorOtp,
   userOtp,
-  editVendor
+  editVendor,
+  forgotPassword,
+  changePassword,
+  profile
 };

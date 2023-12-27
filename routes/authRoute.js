@@ -14,8 +14,10 @@ router.post("/user-otp", authController.userOtp);
 router.post("/signup/admin", authController.signupAdmin);
 router.post("/login", authController.loginUser);
 router.post("/loginviamobile", authController.loginviamobile);
-router.get("/profile", authenticateToken, (req, res) => {
-  res.status(200).json({ user: req.user , succsess: true });
-});
+
+router.post("/forgot-password", authController.forgotPassword);
+router.post("/reset-password", authController.changePassword);
+
+router.get("/profile", authenticateToken, authController.profile);
 
 module.exports = router;
