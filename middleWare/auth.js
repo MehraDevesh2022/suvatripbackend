@@ -1,11 +1,10 @@
 const jwt = require("jsonwebtoken");
 const config = require("../config/config");
 
+
 const authenticateToken = (req, res, next) => {
   // Get the token from the Authorization header
   const authorizationHeader = req.headers.authorization;
-
- 
 
   // Check if the user is logged in with a valid token
   if (authorizationHeader) {
@@ -14,6 +13,7 @@ const authenticateToken = (req, res, next) => {
     if (token) {
       jwt.verify(token, config.JWT_SECRET, (err, user) => {
         if (err) {
+          console.log(err, "err");
           return res.status(403).json({ message: "Forbidden" });
         }
 
