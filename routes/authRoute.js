@@ -8,7 +8,7 @@ router.post("/signup/user", authController.signupUser);
 router.post("/signup/google", authController.signupGoogle);
 router.post("/signup/fb", authController.signUpFacebookAuth);
 router.post("/signup/vendor", authController.signupVendor);
-router.post("/vendor-edit", authController.editVendor);
+router.post("/vendor-edit", authenticateToken, authController.editVendor);
 router.post("/vendor-otp", authController.vendorOtp);
 router.post("/user-otp", authController.userOtp);
 router.post("/signup/admin", authController.signupAdmin);

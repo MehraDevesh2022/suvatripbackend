@@ -86,7 +86,10 @@ exports.createHotel = async (req, res) => {
       paymentPolicy: JSON.parse(req.body.paymentPolicy),
       parking: JSON.parse(req.body.parking),
       transportation: JSON.parse(req.body.transportation),
-      description: req.body.description
+      description: req.body.description,
+      latitude: req.body.latitude,
+      longitude: req.body.longitude,
+      address: req.body.address
     };
 
     const pictureLinks = req.files["picture"].map((file, index) => ({
