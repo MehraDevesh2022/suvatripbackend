@@ -680,12 +680,12 @@ const storeOTP = async (email, otp, expirationTime) => {
 const updatePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
-
-    if (!userId || !currentPassword || !newPassword) {
+      const {email} = req.user;
+    if ( !email|| !currentPassword || !newPassword) {
       return res.status(400).json({ message: "Please provide userId, currentPassword, and newPassword" });
     }
 
-    const existingUser = await User.findById(userId);
+    const existingUser = await User.findOne({ email });
 
     if (!existingUser) {
       return res.status(404).json({ message: "User not found" });
@@ -732,5 +732,6 @@ module.exports = {
   editVendor,
   forgotPassword,
   changePassword,
-  profile
+  profile,
+  updatePassword
 };
