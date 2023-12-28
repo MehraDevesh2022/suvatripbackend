@@ -77,8 +77,8 @@ exports.createHotel = async (req, res) => {
 
     let data = {
       contactNo: JSON.parse(req.body.contactDetails).contactNo,
-      country: JSON.parse(req.body.contactDetails).country,
-      city: JSON.parse(req.body.contactDetails).city,
+      country: req.body.country,
+      city: req.body.city,
       ...JSON.parse(req.body.basicDetails),
       facilities: facilities,
       ammenities: ammenities,

@@ -399,6 +399,12 @@ const loginUser = async (req, res) => {
     if (role === "user") {
       const user = await User.findOne({ email });
 
+      console.log(email);
+
+      const hashedPassword = await bcrypt.hash(user.password, 10);
+
+      console.log(hashedPassword);
+
       if (!user || !bcrypt.compareSync(password, user.password)) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
@@ -462,6 +468,7 @@ const loginUser = async (req, res) => {
       res.status(400).json({ message: "User not found" });
     }
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: "Something went wrong" });
   }
 };
