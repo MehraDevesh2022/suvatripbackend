@@ -16,7 +16,7 @@ const transporter = nodemailer.createTransport({
 exports.getAllHotels = async (req, res) => {
   try {
     const hotels = await Hotel.find();
-    console.log(hotels, "hotels");
+    // console.log(hotels, "hotels");
     if (!hotels) {
       return res.status(404).json({ error: "Hotel not found!" });
     }

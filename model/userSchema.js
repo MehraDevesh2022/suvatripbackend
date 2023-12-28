@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 const { v4: uuidv4 } = require('uuid');
 
 const userSchema = new mongoose.Schema({
@@ -39,6 +40,10 @@ const userSchema = new mongoose.Schema({
     required: true
   }
 });
+
+userSchema.methods.comparePassword = async function(candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
+};
 
 userSchema.index({ email: 1 }, { unique: true });
 const User = mongoose.model("User", userSchema);
