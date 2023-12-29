@@ -442,7 +442,7 @@ const loginUser = async (req, res) => {
       }
 
       if (user.otpVerify === false) {
-        return res.status(400).json({ message: "User not registered" });
+        return res.status(400).json({ message: "User not registered"  });
       }
 
 
