@@ -4,12 +4,20 @@ const config = require("../config/config");
 
 const authenticateToken = (req, res, next) => {
   // Get the token from the Authorization header
-  const authorizationHeader = req.headers.authorization;
-      console.log(req.body, "req.body in auth");
-  // Check if the user is logged in with a valid token
-  if (authorizationHeader) {
+  
+
+  const hotelSecret = req.headers.my_secret;
+
+  if (hotelSecret && hotelSecret === config.MY_SECRET) {
+    req.isHotelAccess = true;
+    next();
+    return;
+  }
+
+   else {
+    const authorizationHeader = req.headers.authorization;
     const token = authorizationHeader.split(" ")[1];
-   console.log(token, "token");
+    //  console.log(token, "token");
     if (token) {
       jwt.verify(token, config.JWT_SECRET, (err, user) => {
         if (err) {
@@ -25,13 +33,6 @@ const authenticateToken = (req, res, next) => {
     }
   }
 
-  const hotelSecret = req.headers.my_secret;
-
-  if (hotelSecret === config.MY_SECRET) {
-    req.isHotelAccess = true;
-    next();
-    return;
-  }
 };
 
 module.exports = authenticateToken;

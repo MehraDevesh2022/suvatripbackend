@@ -215,7 +215,7 @@ const signupGoogle = async (req, res) => {
 const signUpFacebookAuth = async (req, res) => {
   try {
     console.log("trying signup with facebook");
-    const { userId, accessToken } = req.body;
+    const { userId, accessToken } = req.body; 
 
     if (!userId || userId == "" || !accessToken || accessToken == "") {
       return res
@@ -442,9 +442,8 @@ const loginUser = async (req, res) => {
       }
 
       if (user.otpVerify === false) {
-        return res.status(400).json({ message: "User not registered"  });
+        return res.status(400).json({ message: "User not registered" });
       }
-
 
       const payLoad = {
         name: user?.username,
@@ -452,7 +451,7 @@ const loginUser = async (req, res) => {
         authType: "local",
       };
 
-      const token = generateToken(user , payLoad);
+      const token = generateToken(user, payLoad);
       console.log("Token:", token);
       res.status(201).json({ token });
     } else if (role === "vendor") {
@@ -714,14 +713,12 @@ const profile = async (req, res) => {
       if (!user) {
         return res.status(400).json({ message: "User not found" });
       }
-      res
-        .status(200)
-        .json({
-          message: "User found successfully",
-          user: user,
-          authType: "local",
-          success: true,
-        });
+      res.status(200).json({
+        message: "User found successfully",
+        user: user,
+        authType: "local",
+        success: true,
+      });
     } else if (authType === "google") {
       const { email } = req.user;
 
@@ -731,14 +728,12 @@ const profile = async (req, res) => {
       if (!user) {
         return res.status(400).json({ message: "User not found" });
       }
-      res
-        .status(200)
-        .json({
-          message: "User found successfully",
-          user: user,
-          authType: "google",
-          success: true,
-        });
+      res.status(200).json({
+        message: "User found successfully",
+        user: user,
+        authType: "google",
+        success: true,
+      });
     } else if (authType === "facebook") {
       const { facebookId } = req.user;
       const user = await FacebookAuth.findOne({ facebookId });
@@ -746,14 +741,12 @@ const profile = async (req, res) => {
       if (!user) {
         return res.status(400).json({ message: "User not found" });
       }
-      res
-        .status(200)
-        .json({
-          message: "User found successfully",
-          user: user,
-          authType: "facebook",
-          success: true,
-        });
+      res.status(200).json({
+        message: "User found successfully",
+        user: user,
+        authType: "facebook",
+        success: true,
+      });
     }
   } catch (error) {
     console.error("Error during login:", error);
