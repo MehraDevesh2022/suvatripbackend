@@ -3,7 +3,7 @@ const router = express.Router();
 const hotelController = require("../controller/hotelController");
 const authenticateToken = require("../middleWare/auth");
 
-router.get("/get-all-hotels",
+router.get("/get-all-hotels", 
   authenticateToken,
   hotelController.getAllHotels);
  

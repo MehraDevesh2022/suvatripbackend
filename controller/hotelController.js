@@ -162,7 +162,7 @@ exports.createHotel = async (req, res) => {
 exports.filterHotels = async (req, res) => {
   try {
     const { location, startDate, endDate } = req.query;
-    console.log(location);
+  
     // Validate and sanitize input
     if (!location || typeof location !== "string") {
       return res.status(400).json({ error: "Invalid location parameter" });
@@ -182,7 +182,7 @@ exports.filterHotels = async (req, res) => {
     const filteredHotels = await Hotel.find({
       country: { $regex: new RegExp(`^${sanitizedLocation}$`, "i") },
     });
-    console.log(filteredHotels, "filteredHotels");
+   
     res
       .status(200)
       .json({
@@ -199,26 +199,36 @@ exports.filterHotels = async (req, res) => {
 exports.getHotelById = async (req, res) => {
   try {
     const { id } = req.params;
+  // console.log(id , "id");
 
     const { fields } = req.query;
 
     let query = Hotel.findOne({ _id: id });
-
+    //  console.log(query , "query");
     if (fields) {
       const fieldsArray = fields.split(",");
       query = query.select(fieldsArray.join(" "));
     }
 
     const hotels = await query.exec();
+     
+  
+    if (!hotels) {
+      return res.status(404).json({ error: "Hotel not found!" });
+    }
 
-    res.json({
-      status: true,
+    console.log("hello")
+    console.log(hotels, "hotelData")
+  
+    res.json({ 
+   
       message: "Hotel data fetched successfully",
       data: hotels,
+       success: true,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
-  }
+  } 
 };
 
 exports.updateHotel = async (req, res) => {
