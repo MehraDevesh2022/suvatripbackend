@@ -18,7 +18,7 @@ const transporter = nodemailer.createTransport({
     user: "suvatrip1@gmail.com",
     pass: "aHSmbLgWfVqr54Uy",
   },
-});
+}); 
 
 ///SIGN UP USER
 const signupUser = async (req, res) => {
@@ -33,7 +33,7 @@ const signupUser = async (req, res) => {
     // Check for existing user by email
     const existingUser = await User.findOne({ email });
 
-    console.log(existingUser, "userLoggedIN");
+    console.log(existingUser, "userLoggedIN"); 
 
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
