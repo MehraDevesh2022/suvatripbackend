@@ -19,5 +19,7 @@ router.post("/forgot-password", authController.forgotPassword);
 router.post("/reset-password", authController.changePassword);
 
 router.get("/profile", authenticateToken, authController.profile);
+router.get("/vendor-profile", authenticateToken, authController.vendorProfile);
+
 
 module.exports = router;

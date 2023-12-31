@@ -5,8 +5,15 @@ const config = require("../config/config");
 const authenticateToken = (req, res, next) => {
   // Get the token from the Authorization header
   const authorizationHeader = req.headers.authorization;
+  const hotelSecret = req.headers.my_secret;
 
-  console.log(req.headers.authorization);
+  if (hotelSecret === config.MY_SECRET) {
+    req.isHotelAccess = true;
+    next();
+    return;
+
+  }
+
 
   // Check if the user is logged in with a valid token
   if (authorizationHeader) {
