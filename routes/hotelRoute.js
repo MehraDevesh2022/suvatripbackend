@@ -7,7 +7,7 @@ router.get("/get-all-hotels", authenticateToken, hotelController.getAllHotels);
 
 router.get("/filter", authenticateToken, hotelController.filterHotels);
 
-router.post("/create-hotel",hotelController.createHotel);
+router.post("/create-hotel",authenticateToken , hotelController.createHotel);
 
 router.get(
   "/get-hotel-by-id/:id", 

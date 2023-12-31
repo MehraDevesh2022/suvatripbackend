@@ -42,7 +42,8 @@ exports.getAllHotels = async (req, res) => {
 
 exports.createHotel = async (req, res) => {
   const { uploadPicture } = multerConfigs;
-
+  console.log(req.user, "req.body");
+  
   uploadPicture(req, res, async function (err) {
     if (err) {
       console.log(err);
