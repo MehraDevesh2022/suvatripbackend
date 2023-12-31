@@ -3,27 +3,28 @@ const router = express.Router();
 const hotelController = require("../controller/hotelController");
 const authenticateToken = require("../middleWare/auth");
 
-router.get("/get-all-hotels", 
-  authenticateToken,
-  hotelController.getAllHotels);
- 
-  router.get("/filter", authenticateToken ,hotelController.filterHotels)
+router.get("/get-all-hotels", authenticateToken, hotelController.getAllHotels);
 
-router.post("/create-hotel",
-  authenticateToken,
-  hotelController.createHotel);
+router.get("/filter", authenticateToken, hotelController.filterHotels);
 
-router.get("/get-hotel-by-id/:id",
+router.post("/create-hotel",hotelController.createHotel);
+
+router.get(
+  "/get-hotel-by-id/:id",
   // authenticateToken,
-  hotelController.getHotelById);
-  
-router.patch("/update-hotel/:id",
+  hotelController.getHotelById
+);
+
+router.patch(
+  "/update-hotel/:id",
   // authenticateToken,
-  hotelController.updateHotel);
+  hotelController.updateHotel
+);
 
-router.delete("/delete-hotel/:id",
+router.delete(
+  "/delete-hotel/:id",
   authenticateToken,
-  hotelController.deleteHotel);
+  hotelController.deleteHotel
+);
 
- 
 module.exports = router;
