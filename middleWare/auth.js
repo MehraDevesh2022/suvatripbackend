@@ -4,7 +4,7 @@ const config = require("../config/config");
 
 const authenticateToken = (req, res, next) => {
   // Get the token from the Authorization header
-  
+  const authorizationHeader = req.headers.authorization;
 
   console.log(req.headers.authorization);
 
