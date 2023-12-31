@@ -494,7 +494,7 @@ const loginUser = async (req, res) => {
         // Send the token in the response
         res.status(201).json({ token, registration: false });
       } else {
-        res.status(201).json({ registration: true });
+        res.status(201).json({ token, registration: true });
       }
     } else if (role === "admin") {
       const findadmin = await admin.findOne({ email });

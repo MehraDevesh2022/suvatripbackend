@@ -198,12 +198,12 @@ exports.filterHotels = async (req, res) => {
 
 exports.getHotelById = async (req, res) => {
   try {
-    const { id } = req.params;
-  // console.log(id , "id");
+    const { id } = req.user;
+  console.log(id , "id");
 
     const { fields } = req.query;
 
-    let query = Hotel.findOne({ _id: id });
+    let query = Hotel.findOne({ vendor_id: id });
     //  console.log(query , "query");
     if (fields) {
       const fieldsArray = fields.split(",");
