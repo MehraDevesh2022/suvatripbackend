@@ -14,7 +14,7 @@ router.post("/user-otp", authController.userOtp);
 router.post("/signup/admin", authController.signupAdmin);
 router.post("/login", authController.loginUser);
 router.post("/loginviamobile", authController.loginviamobile);
-
+router.post('/update-password', authenticateToken , authController.updatePassword);
 router.post("/forgot-password", authController.forgotPassword);
 router.post("/reset-password", authController.changePassword);
 
