@@ -4,6 +4,7 @@ const config = require("../config/config");
 
 const authenticateToken = (req, res, next) => {
   // Get the token from the Authorization header
+  const authorizationHeader = req.headers.authorization;
   const hotelSecret = req.headers.my_secret;
 
   if (hotelSecret === config.MY_SECRET) {
