@@ -465,7 +465,7 @@ const loginUser = async (req, res) => {
 
       if (findvendor.otpVerify === false) {
         return res.status(400).json({ message: "User not registered" });
-      }
+      } 
 
       const token = generateToken(findvendor);
 
