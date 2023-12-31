@@ -1,5 +1,5 @@
-const DB_LINK ="mongodb://localhost:27017/suvatrip";
-// const DB_LINK ="mongodb+srv://mehradevesh2022:bG43zxYFh5CjY4GW@cluster0.u9qjfd1.mongodb.net/";
+// const DB_LINK ="mongodb://localhost:27017/suvatrip";
+const DB_LINK ="mongodb+srv://mehradevesh2022:bG43zxYFh5CjY4GW@cluster0.u9qjfd1.mongodb.net/";
 // const DB_LINK ="mongodb://localhost:27017/suvatrip";
 const PORT = 8000;
 const JWT_SECRET = "secret";
