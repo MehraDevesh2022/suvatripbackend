@@ -25,5 +25,5 @@ router.delete("/delete-hotel/:id",
   authenticateToken,
   hotelController.deleteHotel);
 
-
+ 
 module.exports = router;
