@@ -591,6 +591,7 @@ const generateToken = (
   payload = {
     name: user?.username,
     email: user?.email,
+    id: user?._id
   }
 ) => {
   return jwt.sign(payload, config.JWT_SECRET, { expiresIn: "1h" });
