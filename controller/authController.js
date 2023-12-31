@@ -365,7 +365,7 @@ const signupVendor = async (req, res) => {
 
 const vendorOtp = async (req, res) => {
   try {
-    console.log(req.body);
+    console.log(req.body , "otp vender");
     const { email, otp } = req.body;
 
     if (!email || !otp) {
@@ -427,7 +427,7 @@ const signupAdmin = async (req, res) => {
 //LOGIN IN USER
 const loginUser = async (req, res) => {
   try {
-    console.log("Trying login");
+    console.log("Trying login user");
     const { email, password, role } = req.body;
 
     if (!role || !email || !password) {
@@ -761,6 +761,29 @@ const profile = async (req, res) => {
   }
 };
 
+const vendorProfile = async (req, res) => {
+  try {
+   
+      const { email } = req.user;
+      const user = await vendor.findOne({
+        email: { $regex: new RegExp(`^${email}$`, "i") },
+      });
+
+      if (!user) {
+        return res.status(400).json({ message: "User not found" });
+      }
+      res.status(200).json({
+        message: "User found successfully",
+        user: {name : user.username , email : user.email},
+        success: true,
+      });
+     
+  } catch (error) {
+    console.error("Error during login:", error);
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
 // update password
 
 const updatePassword = async (req, res) => {
@@ -791,6 +814,7 @@ const updatePassword = async (req, res) => {
 
     if (!isCurrentPasswordValid) {
       return res.status(400).json({ message: "Current password is incorrect" });
+      
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -827,4 +851,5 @@ module.exports = {
   changePassword,
   profile,
   updatePassword,
+  vendorProfile
 };
