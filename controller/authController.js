@@ -342,6 +342,8 @@ const signupVendor = async (req, res) => {
 
       let updatedData = { email: email, username: username, _id: isVendor._id }
 
+      console.log(updatedData, 'vvvvvv');
+
       const token = generateToken(updatedData);
 
       const mailOptions = {
