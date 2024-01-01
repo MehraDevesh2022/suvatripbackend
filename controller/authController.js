@@ -314,49 +314,88 @@ const editVendor = async (req, res) => {
 const signupVendor = async (req, res) => {
   try {
     const { username, email, password, phone } = req.body;
-    console.log("req.body", req.body);
+
     if (!username || !email || !password) {
       return res.status(400).json({ message: "Please enter all fields" });
     }
     const isVendor = await vendor.findOne({ email });
 
-    if (isVendor) {
+    if (isVendor && isVendor.otpVerify===true) {
       return res.status(400).json({ message: "Vendor already exists" });
     }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     let otp = generateOTP();
 
-    const createvendor = await vendor.create({
-      username: username,
-      password: hashedPassword,
-      phoneNumber: phone,
-      email,
-      role: "vendor",
-      otp: otp,
-      otpVerify: false,
-    });
+    if(isVendor && isVendor.otpVerify===false) {
+      const updatedVendor = await vendor.updateOne(
+        { email },
+        {
+          username,
+          password: hashedPassword,
+          phoneNumber: phone,
+          otp,
+          otpVerify: false,
+        }
+      );
 
-    const token = generateToken(vendor);
+      const token = generateToken(updatedVendor);
 
-    const mailOptions = {
-      from: "suvatrip1@gmail.com",
-      to: email,
-      subject: "Registration Successful",
-      text: `Hello,\n\nHere if you otp for vendor registration: ${otp}`,
-    };
+      const mailOptions = {
+        from: "suvatrip1@gmail.com",
+        to: email,
+        subject: "Registration Successful",
+        text: `Hello,\n\nHere if you otp for vendor registration: ${otp}`,
+      };
+  
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error("Error occurred:", error);
+        } else {
+          console.log("Email sent:", info.response);
+        }
+      });
+  
+      res
+        .status(201)
+        .json({ token, message: "Vendor created successfully", updatedVendor });
+    }
 
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error("Error occurred:", error);
-      } else {
-        console.log("Email sent:", info.response);
-      }
-    });
+    if (!isVendor) {
+      const createvendor = await vendor.create({
+        username: username,
+        password: hashedPassword,
+        phoneNumber: phone,
+        email,
+        role: "vendor",
+        otp: otp,
+        otpVerify: false,
+      });
+  
+      const token = generateToken(createvendor);
 
-    res
-      .status(201)
-      .json({ token, message: "Vendor created successfully", createvendor });
+      const mailOptions = {
+        from: "suvatrip1@gmail.com",
+        to: email,
+        subject: "Registration Successful",
+        text: `Hello,\n\nHere if you otp for vendor registration: ${otp}`,
+      };
+  
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error("Error occurred:", error);
+        } else {
+          console.log("Email sent:", info.response);
+        }
+      });
+  
+      res
+        .status(201)
+        .json({ token, message: "Vendor created successfully", createvendor });
+    }
+
+
   } catch (error) {
     console.error("Error creating vendor:", error);
     res.status(500).json({ message: "Something went wrong" });
@@ -472,7 +511,7 @@ const loginUser = async (req, res) => {
 ;
 
       // Send the token in the response
-      res.status(201).json({ token });
+      res.status(201).json({ token, role: 'vendor' });
     } else if (role === "vendor-admin") {
       // console.log(req.body, "req.body");
 
@@ -518,6 +557,7 @@ const loginUser = async (req, res) => {
         message: "Admin logged in successfully",
         token,
         success: true,
+        role: 'admin'
       });
     } else {
       res.status(400).json({ message: "User not found" });

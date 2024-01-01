@@ -137,6 +137,8 @@ exports.createHotel = async (req, res) => {
 
       const newHotel = await hotel.save();
 
+      console.log(req.user.email);
+
       const mailOptions = {
         from: 'suvatrip1@gmail.com',
         to: req.user.email,
@@ -236,8 +238,6 @@ exports.filterHotels = async (req, res) => {
 exports.getHotelById = async (req, res) => {
   try {
     const { id } = req.params;
-  // console.log(id , "id");
-
     const { fields } = req.query;
 
     let query = Hotel.findOne({ _id: id });
