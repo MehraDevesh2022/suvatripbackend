@@ -474,7 +474,7 @@ const loginUser = async (req, res) => {
       const token = generateToken(findvendor);
 
       // Send the token in the response
-      res.status(201).json({ token });
+      res.status(201).json({ token, role: 'vendor' });
     } else if (role === "vendor-admin") {
       const findvendor = await vendor.findOne({ email });
 
@@ -510,6 +510,7 @@ const loginUser = async (req, res) => {
         message: "Admin logged in successfully",
         token,
         success: true,
+        role: 'admin'
       });
     } else {
       res.status(400).json({ message: "User not found" });
