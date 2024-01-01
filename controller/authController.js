@@ -314,15 +314,16 @@ const editVendor = async (req, res) => {
 const signupVendor = async (req, res) => {
   try {
     const { username, email, password, phone } = req.body;
-    console.log("req.body", req.body);
+
     if (!username || !email || !password) {
       return res.status(400).json({ message: "Please enter all fields" });
     }
     const isVendor = await vendor.findOne({ email });
 
-    if (isVendor) {
+    if (isVendor && isVendor.otpVerify===true) {
       return res.status(400).json({ message: "Vendor already exists" });
     }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     let otp = generateOTP();
@@ -337,7 +338,7 @@ const signupVendor = async (req, res) => {
       otpVerify: false,
     });
 
-    const token = generateToken(vendor);
+    const token = generateToken(createvendor);
 
     const mailOptions = {
       from: "suvatrip1@gmail.com",
