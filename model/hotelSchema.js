@@ -18,6 +18,8 @@ const hotelSchema = new mongoose.Schema({
     country: { type: String, required: true },
     city: { type: String, required: true },
     address: { type: String, required: true },
+    zipCode: { type: String, required: true },
+    state: { type: String, required: true },
     roomsNo: { type: Number, required: true },
     propertyPicture: { type: Array, required: true },
     roomPicture: { type: Array, required: true },
