@@ -349,7 +349,7 @@ const signupVendor = async (req, res) => {
       const mailOptions = {
         from: "suvatrip1@gmail.com",
         to: email,
-        subject: "Registration Successful",
+        subject: "OTP for vendor registration",
         text: `Hello,\n\nHere if you otp for vendor registration: ${otp}`,
       };
 
@@ -382,7 +382,7 @@ const signupVendor = async (req, res) => {
       const mailOptions = {
         from: "suvatrip1@gmail.com",
         to: email,
-        subject: "Registration Successful",
+        subject: "OTP for vendor registration",
         text: `Hello,\n\nHere if you otp for vendor registration: ${otp}`,
       };
 
