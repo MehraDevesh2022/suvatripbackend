@@ -90,7 +90,9 @@ exports.createHotel = async (req, res) => {
       description: req.body.description,
       latitude: req.body.latitude,
       longitude: req.body.longitude,
-      address: req.body.address
+      address: req.body.address,
+      state: req.body.state,
+      zipCode: req.body.zipCode
     };
 
     const pictureLinks = req.files["picture"].map((file, index) => ({
