@@ -204,10 +204,6 @@ exports.filterHotels = async (req, res) => {
 // exports.getHotelById = async (req, res) => {
 //   try {
 //     const { id } = req.user;
-<<<<<<< HEAD
-//   console.log(id , "id");
-=======
->>>>>>> 6678a86420d9f93d81e53c251b045d9944ff0ab9
 
 //     const { fields } = req.query;
 
@@ -238,11 +234,6 @@ exports.filterHotels = async (req, res) => {
 //     res.status(500).json({ message: err.message });
 //   } 
 // };
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 6678a86420d9f93d81e53c251b045d9944ff0ab9
 exports.getHotelById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -275,11 +266,6 @@ exports.getHotelById = async (req, res) => {
     res.status(500).json({ message: err.message });
   } 
 };
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 6678a86420d9f93d81e53c251b045d9944ff0ab9
 exports.updateHotel = async (req, res) => {
   const allowedFields = [
     "UUID",
