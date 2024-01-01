@@ -437,12 +437,6 @@ const loginUser = async (req, res) => {
     if (role === "user") {
       const user = await User.findOne({ email });
 
-      console.log(email);
-
-      const hashedPassword = await bcrypt.hash(user.password, 10);
-
-      console.log(hashedPassword);
-
       if (!user || !bcrypt.compareSync(password, user.password)) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
@@ -460,6 +454,8 @@ const loginUser = async (req, res) => {
       const token = generateToken(user, payLoad);
       console.log("Token:", token);
       res.status(201).json({ token });
+
+
     } else if (role === "vendor") {
       const findvendor = await vendor.findOne({ email });
 
@@ -469,32 +465,44 @@ const loginUser = async (req, res) => {
 
       if (findvendor.otpVerify === false) {
         return res.status(400).json({ message: "User not registered" });
-      }
+      } 
 
       const token = generateToken(findvendor);
+
+;
 
       // Send the token in the response
       res.status(201).json({ token, role: 'vendor' });
     } else if (role === "vendor-admin") {
+      // console.log(req.body, "req.body");
+
       const findvendor = await vendor.findOne({ email });
+        
+      // { email: 'test@gmail.com', password: 'qwert', role: 'vendor-admin' } req.body
+        
+      console.log(findvendor , "findvendor");
 
       if (!findvendor || !bcrypt.compareSync(password, findvendor.password)) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
+  
       if (findvendor.otpVerify === false) {
         return res.status(400).json({ message: "User not registered" });
       }
+      // console.log(findvendor._id , "findvendor._id");
 
       const hotel = await Hotel.findOne({ vendor_id: findvendor._id });
+      // console.log(hotel, "hotel");
 
       if (!hotel) {
         const token = generateToken(findvendor);
-
         // Send the token in the response
-        res.status(201).json({ token, registration: false });
+        console.log("hotel not registered");
+        res.status(201).json({ token, registration: false  , message : "Hotel not registered"});
       } else {
-        res.status(201).json({ token, registration: true });
+        const token = generateToken(findvendor);
+          res.status(201).json({ registration: true , message : "Hotel already registered" , token : token });
       }
     } else if (role === "admin") {
       const findadmin = await admin.findOne({ email });
@@ -516,7 +524,7 @@ const loginUser = async (req, res) => {
       res.status(400).json({ message: "User not found" });
     }
   } catch (error) {
-    console.log(error);
+    console.log(error , "error");
     res.status(500).json({ message: "Something went wrong" });
   }
 };
@@ -590,9 +598,9 @@ function generateOTP() {
 const generateToken = (
   user,
   payload = {
+    id : user?._id,
     name: user?.username,
     email: user?.email,
-    id: user?._id
   }
 ) => {
   return jwt.sign(payload, config.JWT_SECRET, { expiresIn: "1h" });
