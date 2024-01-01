@@ -234,6 +234,7 @@ exports.filterHotels = async (req, res) => {
 //     res.status(500).json({ message: err.message });
 //   } 
 // };
+
 exports.getHotelById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -301,7 +302,7 @@ exports.updateHotel = async (req, res) => {
 
   try {
     const hotel = await Hotel.findOneAndUpdate(
-      { vendor_id: req.params.id },
+      { _id: req.params.id },
       { $set: req.body },
       { new: true, runValidators: true }
     );
