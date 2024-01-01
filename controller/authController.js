@@ -328,36 +328,74 @@ const signupVendor = async (req, res) => {
 
     let otp = generateOTP();
 
-    const createvendor = await vendor.create({
-      username: username,
-      password: hashedPassword,
-      phoneNumber: phone,
-      email,
-      role: "vendor",
-      otp: otp,
-      otpVerify: false,
-    });
+    if(isVendor && isVendor.otpVerify===false) {
+      const updatedVendor = await vendor.updateOne(
+        { email },
+        {
+          username,
+          password: hashedPassword,
+          phoneNumber: phone,
+          otp,
+          otpVerify: false,
+        }
+      );
 
-    const token = generateToken(createvendor);
+      const token = generateToken(updatedVendor);
 
-    const mailOptions = {
-      from: "suvatrip1@gmail.com",
-      to: email,
-      subject: "Registration Successful",
-      text: `Hello,\n\nHere if you otp for vendor registration: ${otp}`,
-    };
+      const mailOptions = {
+        from: "suvatrip1@gmail.com",
+        to: email,
+        subject: "Registration Successful",
+        text: `Hello,\n\nHere if you otp for vendor registration: ${otp}`,
+      };
+  
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error("Error occurred:", error);
+        } else {
+          console.log("Email sent:", info.response);
+        }
+      });
+  
+      res
+        .status(201)
+        .json({ token, message: "Vendor created successfully", updatedVendor });
+    }
 
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error("Error occurred:", error);
-      } else {
-        console.log("Email sent:", info.response);
-      }
-    });
+    if (!isVendor) {
+      const createvendor = await vendor.create({
+        username: username,
+        password: hashedPassword,
+        phoneNumber: phone,
+        email,
+        role: "vendor",
+        otp: otp,
+        otpVerify: false,
+      });
+  
+      const token = generateToken(createvendor);
 
-    res
-      .status(201)
-      .json({ token, message: "Vendor created successfully", createvendor });
+      const mailOptions = {
+        from: "suvatrip1@gmail.com",
+        to: email,
+        subject: "Registration Successful",
+        text: `Hello,\n\nHere if you otp for vendor registration: ${otp}`,
+      };
+  
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error("Error occurred:", error);
+        } else {
+          console.log("Email sent:", info.response);
+        }
+      });
+  
+      res
+        .status(201)
+        .json({ token, message: "Vendor created successfully", createvendor });
+    }
+
+
   } catch (error) {
     console.error("Error creating vendor:", error);
     res.status(500).json({ message: "Something went wrong" });
