@@ -473,6 +473,8 @@ const loginUser = async (req, res) => {
     console.log("Trying login user");
     const { email, password, role } = req.body;
 
+    console.log(req.body, 'llooggiinn');
+
     if (!role || !email || !password) {
       return res.status(400).json({ message: "Please enter all fields" });
     }
@@ -502,6 +504,8 @@ const loginUser = async (req, res) => {
     } else if (role === "vendor") {
       const findvendor = await vendor.findOne({ email });
 
+      console.log(findvendor, "findvendor");
+
       if (!findvendor || !bcrypt.compareSync(password, findvendor.password)) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
@@ -511,8 +515,6 @@ const loginUser = async (req, res) => {
       }
 
       const token = generateToken(findvendor);
-
-      ;
 
       // Send the token in the response
       res.status(201).json({ token, role: 'vendor' });
@@ -646,6 +648,7 @@ const generateToken = (
     email: user?.email,
   }
 ) => {
+  console.log(payload, 'tokenDATA');
   return jwt.sign(payload, config.JWT_SECRET, { expiresIn: "1h" });
 };
 
