@@ -9,10 +9,14 @@ router.post(
   roomController.createRoom
 );
 
+// get all rooms
+
+ router.get("/get-all-rooms" , authenticateToken ,  roomController.getAllRooms)
+
 router.get(
   "/:id",
-  // authenticateToken,
-  roomController.getAllRooms
+  authenticateToken,
+  roomController.getRoomDetails
 );
 
 router.patch(

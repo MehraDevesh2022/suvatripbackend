@@ -12,7 +12,7 @@ const hotelSchema = new mongoose.Schema({
     vendor_id: { type: mongoose.Schema.Types.ObjectId, ref: "Vendor" },
     propertyName: { type: String, required: true },
     propertyType: { type: String, required: true },
-    rating: { type: String },
+    rating: { type: String, default: "2" },
     currency: { type: String, required: true },
     contactNo: { type: String, required: true },
     country: { type: String, required: true },

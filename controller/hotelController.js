@@ -16,8 +16,7 @@ const transporter = nodemailer.createTransport({
 exports.getAllHotels = async (req, res) => {
   try {
     const hotels = await Hotel.find();
-    console.log(hotels, "hotels");
-    console.log();
+    // console.log(hotels, "hotels");
     if (!hotels) {
       return res.status(404).json({ error: "Hotel not found!" });
     }
@@ -173,53 +172,54 @@ exports.createHotel = async (req, res) => {
 };
 
 // Function to filter hotels based on location
+
 exports.filterHotels = async (req, res) => {
   try {
     const { location, startDate, endDate, children, room, adult } = req.query;
 
-    // Validate and sanitize input
+    console.log(req.query, "req.query");
+
+ 
     if (!location || typeof location !== "string") {
       return res.status(400).json({ error: "Invalid location parameter" });
     }
 
-    // Trim leading and trailing whitespaces from the location
     const sanitizedLocation = location.trim();
 
-    // Check if the location is not an empty string after trimming
+ 
     if (!sanitizedLocation) {
       return res
         .status(400)
         .json({ error: "Location parameter cannot be empty" });
     }
 
-    // Decode and convert start and end dates to Date objects
+  
     const decodedStartDate = new Date(decodeURIComponent(startDate));
     const decodedEndDate = new Date(decodeURIComponent(endDate));
 
-    // Function to format time in HH:mm
     const formatTime = (date) => {
       const hours = String(date.getUTCHours()).padStart(2, '0');
       const minutes = String(date.getUTCMinutes()).padStart(2, '0');
       return `${hours}:${minutes}`;
     };
 
-    // Format check-in and check-out times
+   
     const checkInTime = formatTime(decodedStartDate);
     const checkOutTime = formatTime(decodedEndDate);
 
-    // Perform the search based on location, startDate, endDate, children, room, and adult
     const filteredHotels = await Hotel.find({
       country: { $regex: new RegExp(`^${sanitizedLocation}$`, "i") },
-      roomsNo: { $gte: room },
-      'hotelRules.allowChildren': children === 'yes',
-      'hotelRules.checkInData.from': { $lte: checkInTime },
-      'hotelRules.checkInData.until': { $gte: checkInTime },
-      'hotelRules.checkOutData.from': { $lte: checkOutTime },
-      'hotelRules.checkOutData.until': { $gte: checkOutTime },
-    }).populate({
-      path: 'rooms',
-      match: { noOfRooms: { $gte: room } }, 
-    });
+      // roomsNo: { $gte: room },
+      // 'hotelRules.allowChildren': children === 'yes',
+      // 'hotelRules.checkInData.from': { $lte: checkInTime },
+      // 'hotelRules.checkInData.until': { $gte: checkInTime },
+      // 'hotelRules.checkOutData.from': { $lte: checkOutTime },
+      // 'hotelRules.checkOutData.until': { $gte: checkOutTime },
+    })
+    // .populate({
+    //   path: 'rooms',
+    //   match: { noOfRooms: { $gte: room } }, 
+    // });
 
     res.status(200).json({
       status: true,
