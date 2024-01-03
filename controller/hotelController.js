@@ -1,21 +1,21 @@
 // controllers/hotelController.js
-const Hotel = require('../model/hotelSchema');
-const multerConfigs = require('../middleWare/multerConfig');
-const nodemailer = require('nodemailer');
+const Hotel = require("../model/hotelSchema");
+const multerConfigs = require("../middleWare/multerConfig");
+const nodemailer = require("nodemailer");
 
 // Create a SMTP transporter
 const transporter = nodemailer.createTransport({
-  host: 'smtp-relay.brevo.com',
-  port: '587',
+  host: "smtp-relay.brevo.com",
+  port: "587",
   auth: {
-    user: 'suvatrip1@gmail.com',
-    pass: 'aHSmbLgWfVqr54Uy'
-  }
+    user: "suvatrip1@gmail.com",
+    pass: "aHSmbLgWfVqr54Uy",
+  },
 });
 
 exports.getAllHotels = async (req, res) => {
   try {
-    const hotels = await Hotel.find();
+    const hotels = await Hotel.find().populate("rooms");
     // console.log(hotels, "hotels");
     if (!hotels) {
       return res.status(404).json({ error: "Hotel not found!" });
@@ -43,7 +43,7 @@ exports.getAllHotels = async (req, res) => {
 exports.createHotel = async (req, res) => {
   const { uploadPicture } = multerConfigs;
   console.log(req.user, "req.body");
-  
+
   uploadPicture(req, res, async function (err) {
     if (err) {
       console.log(err);
@@ -66,9 +66,13 @@ exports.createHotel = async (req, res) => {
 
     if (req.body.ammenities) {
       ammenities = {
-        bathroom: JSON.parse(req.body.ammenities).bathroom ? JSON.parse(req.body.ammenities).bathroom : [],
-        inRoom: JSON.parse(req.body.ammenities).inRoom ? JSON.parse(req.body.ammenities).inRoom : [],
-      }
+        bathroom: JSON.parse(req.body.ammenities).bathroom
+          ? JSON.parse(req.body.ammenities).bathroom
+          : [],
+        inRoom: JSON.parse(req.body.ammenities).inRoom
+          ? JSON.parse(req.body.ammenities).inRoom
+          : [],
+      };
     } else {
       ammenities = {
         bathroom: [],
@@ -92,37 +96,37 @@ exports.createHotel = async (req, res) => {
       longitude: req.body.longitude,
       address: req.body.address,
       state: req.body.state,
-      zipCode: req.body.zipCode
+      zipCode: req.body.zipCode,
     };
 
     const pictureLinks = req.files["picture"].map((file, index) => ({
       link: `${process.env.HOST}${
         ":" + process.env.PORT
       }/uploads/propertyPicture/${file.filename}`,
-      main: req.body.main ? req.body.main[index] : false
+      main: req.body.main ? req.body.main[index] : false,
     }));
     const roomPictureLinks = req.files["roomPicture"].map((file, index) => ({
       link: `${process.env.HOST}${":" + process.env.PORT}/uploads/roomPicture/${
         file.filename
       }`,
-      main: req.body.roomMain ? req.body.roomMain[index] : false
+      main: req.body.roomMain ? req.body.roomMain[index] : false,
     }));
     const areaPictureLinks = req.files["areaPicture"].map((file, index) => ({
       link: `${process.env.HOST}${":" + process.env.PORT}/uploads/areaPicture/${
         file.filename
       }`,
-      main: req.body.areaMain ? req.body.areaMain[index] : false
+      main: req.body.areaMain ? req.body.areaMain[index] : false,
     }));
     const taxDocumentLinks = req.files["taxFile"].map((file) => ({
-      link: `${process.env.HOST}${":" + process.env.PORT}/uploads/documents/tax/${
-        file.filename
-      }`,
+      link: `${process.env.HOST}${
+        ":" + process.env.PORT
+      }/uploads/documents/tax/${file.filename}`,
     }));
 
     const propertyDocumentLinks = req.files["propertyFile"].map((file) => ({
-      link: `${process.env.HOST}${":" + process.env.PORT}/uploads/documents/property/${
-        file.filename
-      }`,
+      link: `${process.env.HOST}${
+        ":" + process.env.PORT
+      }/uploads/documents/property/${file.filename}`,
     }));
 
     try {
@@ -134,7 +138,7 @@ exports.createHotel = async (req, res) => {
         areaPicture: areaPictureLinks,
         taxFile: taxDocumentLinks,
         propertyFile: propertyDocumentLinks,
-        vendor_id: req.user.id
+        vendor_id: req.user.id,
       });
 
       const newHotel = await hotel.save();
@@ -142,21 +146,25 @@ exports.createHotel = async (req, res) => {
       console.log(req.user.email);
 
       const mailOptions = {
-        from: 'suvatrip1@gmail.com',
+        from: "suvatrip1@gmail.com",
         to: req.user.email,
-        subject: 'Registration Successful',
-        text: 'Hello,\n\nYour registration was successful. Welcome aboard!'
+        subject: "Registration Successful",
+        text: "Hello,\n\nYour registration was successful. Welcome aboard!",
       };
-    
+
       transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
-          console.error('Error occurred:', error);
+          console.error("Error occurred:", error);
         } else {
-          console.log('Email sent:', info.response);
+          console.log("Email sent:", info.response);
         }
       });
-      
-      res.json({ status: true, message: 'Hotel created successfully', data: newHotel });
+
+      res.json({
+        status: true,
+        message: "Hotel created successfully",
+        data: newHotel,
+      });
     } catch (err) {
       res.status(400).json({ message: err.message });
     }
@@ -164,37 +172,61 @@ exports.createHotel = async (req, res) => {
 };
 
 // Function to filter hotels based on location
+
 exports.filterHotels = async (req, res) => {
   try {
-    const { location, startDate, endDate } = req.query;
-  
-    // Validate and sanitize input
+    const { location, startDate, endDate, children, room, adult } = req.query;
+
+    console.log(req.query, "req.query");
+
+ 
     if (!location || typeof location !== "string") {
       return res.status(400).json({ error: "Invalid location parameter" });
     }
 
-    // Trim leading and trailing whitespaces from the location
     const sanitizedLocation = location.trim();
 
-    // Check if the location is not an empty string after trimming
+ 
     if (!sanitizedLocation) {
       return res
         .status(400)
         .json({ error: "Location parameter cannot be empty" });
     }
 
-    // Perform case-insensitive search for hotels in the specified location
+  
+    const decodedStartDate = new Date(decodeURIComponent(startDate));
+    const decodedEndDate = new Date(decodeURIComponent(endDate));
+
+    const formatTime = (date) => {
+      const hours = String(date.getUTCHours()).padStart(2, '0');
+      const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+      return `${hours}:${minutes}`;
+    };
+
+   
+    const checkInTime = formatTime(decodedStartDate);
+    const checkOutTime = formatTime(decodedEndDate);
+
     const filteredHotels = await Hotel.find({
       country: { $regex: new RegExp(`^${sanitizedLocation}$`, "i") },
+      // roomsNo: { $gte: room },
+      // 'hotelRules.allowChildren': children === 'yes',
+      // 'hotelRules.checkInData.from': { $lte: checkInTime },
+      // 'hotelRules.checkInData.until': { $gte: checkInTime },
+      // 'hotelRules.checkOutData.from': { $lte: checkOutTime },
+      // 'hotelRules.checkOutData.until': { $gte: checkOutTime },
+    })// .populate({
+    //   path: 'rooms',
+    //   match: { noOfRooms: { $gte: room } }, 
+    // });
+
+    console.log(filteredHotels, "filteredHotels");
+
+    res.status(200).json({
+      status: true,
+      message: "Hotel data fetched successfully",
+      data: filteredHotels,
     });
-   
-    res
-      .status(200)
-      .json({
-        status: true,
-        message: "Hotel data fetched successfully",
-        data: filteredHotels,
-      });
   } catch (error) {
     console.error("Error filtering hotels:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -215,24 +247,23 @@ exports.filterHotels = async (req, res) => {
 //     }
 
 //     const hotels = await query.exec();
-     
-  
+
 //     if (!hotels) {
 //       return res.status(404).json({ error: "Hotel not found!" });
 //     }
 
 //     console.log("hello")
 //     console.log(hotels, "hotelData")
-  
-//     res.json({ 
-   
+
+//     res.json({
+
 //       message: "Hotel data fetched successfully",
 //       data: hotels,
 //        success: true,
 //     });
 //   } catch (err) {
 //     res.status(500).json({ message: err.message });
-//   } 
+//   }
 // };
 
 exports.getHotelById = async (req, res) => {
@@ -240,7 +271,7 @@ exports.getHotelById = async (req, res) => {
     const { id } = req.params;
     const { fields } = req.query;
 
-    let query = Hotel.findOne({ _id: id });
+    let query = Hotel.findOne({ _id: id }).populate("rooms");
     //  console.log(query , "query");
     if (fields) {
       const fieldsArray = fields.split(",");
@@ -248,24 +279,24 @@ exports.getHotelById = async (req, res) => {
     }
 
     const hotels = await query.exec();
-     
-  
+
+    console.log(hotels, "hotels");
+
     if (!hotels) {
       return res.status(404).json({ error: "Hotel not found!" });
     }
 
-    console.log("hello")
-    console.log(hotels, "hotelData")
-  
-    res.json({ 
-   
+    // console.log("hello")
+    // console.log(hotels, "hotelData")
+
+    res.json({
       message: "Hotel data fetched successfully",
       data: hotels,
-       success: true,
+      success: true,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
-  } 
+  }
 };
 exports.updateHotel = async (req, res) => {
   const allowedFields = [
