@@ -17,8 +17,9 @@ router.post("/loginviamobile", authController.loginviamobile);
 router.post('/update-password', authenticateToken , authController.updatePassword);
 router.post("/forgot-password", authController.forgotPassword);
 router.post("/reset-password", authController.changePassword);
-
+router.post("/signup/user-phone", authController.SignupViaPhone);
 router.get("/profile", authenticateToken, authController.profile);
+router.post("/user-phone-otp", authController.userPhoneOtp);
 router.get("/vendor-profile", authenticateToken, authController.vendorProfile);
 
 
