@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
 
 exports.getAllHotels = async (req, res) => {
   try {
-    const hotels = await Hotel.find();
+    const hotels = await Hotel.find().populate("rooms");
     // console.log(hotels, "hotels");
     if (!hotels) {
       return res.status(404).json({ error: "Hotel not found!" });
@@ -215,11 +215,12 @@ exports.filterHotels = async (req, res) => {
       // 'hotelRules.checkInData.until': { $gte: checkInTime },
       // 'hotelRules.checkOutData.from': { $lte: checkOutTime },
       // 'hotelRules.checkOutData.until': { $gte: checkOutTime },
-    })
-    // .populate({
+    })// .populate({
     //   path: 'rooms',
     //   match: { noOfRooms: { $gte: room } }, 
     // });
+
+    console.log(filteredHotels, "filteredHotels");
 
     res.status(200).json({
       status: true,
@@ -270,7 +271,7 @@ exports.getHotelById = async (req, res) => {
     const { id } = req.params;
     const { fields } = req.query;
 
-    let query = Hotel.findOne({ _id: id });
+    let query = Hotel.findOne({ _id: id }).populate("rooms");
     //  console.log(query , "query");
     if (fields) {
       const fieldsArray = fields.split(",");
@@ -278,6 +279,8 @@ exports.getHotelById = async (req, res) => {
     }
 
     const hotels = await query.exec();
+
+    console.log(hotels, "hotels");
 
     if (!hotels) {
       return res.status(404).json({ error: "Hotel not found!" });

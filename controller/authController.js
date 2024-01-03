@@ -79,7 +79,7 @@ const signupUser = async (req, res) => {
     res.cookie("token", token, { httpOnly: true });
     res
       .status(201)
-      .json({ message: "User created successfully", token, success: true });
+      .json({ message: "User created successfully", token, success: true  , user : user});
   } catch (error) {
     // Check if the error is due to duplicate key violation
     if (error.code === 11000) {
@@ -129,7 +129,7 @@ const userOtp = async (req, res) => {
 
     res
       .status(200)
-      .json({ success: true, message: "OTP verified successfully" });
+      .json({ success: true, message: "OTP verified successfully" , user : existingVendor});
   } catch (error) {
     console.error("Error verifying OTP:", error);
     res.status(500).json({ message: "Something went wrong" });
@@ -173,7 +173,7 @@ const signupGoogle = async (req, res) => {
       const token = generateToken(user, payLoad);
       return res
         .status(200)
-        .json({ message: "User already exists", token: token });
+        .json({ message: "User already exists", token: token  , user : user});
     }
 
     const user = await GoogleAuth.create({
@@ -190,7 +190,7 @@ const signupGoogle = async (req, res) => {
     const token = generateToken(user, payLoad);
     res
       .status(201)
-      .json({ message: "User Created Successfully", token: token });
+      .json({ message: "User Created Successfully", token: token  , user : user});
   } catch (error) {
     console.error("Error during Google signup:", error);
 
@@ -240,7 +240,7 @@ const signUpFacebookAuth = async (req, res) => {
       };
 
       const token = generateToken(userData, payLoad);
-      return res.status(200).json({ message: "User already exists", token });
+      return res.status(200).json({ message: "User already exists", token , user : userData });
     } else {
       user = await FacebookAuth.create({
         username: data?.name,
@@ -258,7 +258,7 @@ const signUpFacebookAuth = async (req, res) => {
       const token = generateToken(user, payLoad);
       res
         .status(201)
-        .json({ message: "User Created Successfully", token: token });
+        .json({ message: "User Created Successfully", token: token , user : user });
     }
   } catch (error) {
     console.log(error);
@@ -497,8 +497,8 @@ const loginUser = async (req, res) => {
       };
 
       const token = generateToken(user, payLoad);
-      console.log("Token:", token);
-      res.status(201).json({ token });
+  
+      res.status(201).json({ token  , user : user});
 
 
     } else if (role === "vendor") {

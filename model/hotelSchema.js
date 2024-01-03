@@ -10,6 +10,7 @@ const hotelSchema = new mongoose.Schema({
         required: true
     },
     vendor_id: { type: mongoose.Schema.Types.ObjectId, ref: "Vendor" },
+    rooms: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Room' }],
     propertyName: { type: String, required: true },
     propertyType: { type: String, required: true },
     rating: { type: String, default: "2" },
