@@ -15,7 +15,7 @@ router.post(
 
 router.get(
   "/:id",
-  authenticateToken,
+  // authenticateToken,
   roomController.getRoomDetails
 );
 
