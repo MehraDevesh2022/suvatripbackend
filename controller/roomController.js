@@ -88,9 +88,15 @@ exports.getAllRooms = async (req, res) => {
 exports.getRoomDetails = async (req, res) => {
   try {
     const {id} = req.params;
-    console.log(id, 'iiii');
-    const rooms = await Room.find({hotel_id: id});
-    res.json(rooms);
+
+    const rooms = await Room.find({ hotel_id: id});
+  console.log(id ,rooms?.length ,"rooms");  
+
+    if(!rooms) {
+      return res.status(404).json({ error: 'Rooms not found' });
+    }
+
+    res.status(200).json({ success: true, message: 'Rooms fetched successfully', data: rooms });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Internal Server Error" });

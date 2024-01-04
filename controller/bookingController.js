@@ -2,7 +2,7 @@ const Booking = require("../model/bookingSchema");
  
 exports.createBooking = async (req, res) => {
   try {
-    const allowedFields = ['UUID', 'hotel_id', 'room_id', 'user_id', 'invoice_id', 'promotion_id', 'checkIn', 'checkOut', 'estimatedArival', 'specialRequest', 'phoneNumber', 'roomNumber', 'status'];
+    const allowedFields = ['hotel_id', 'room_id', 'user_id', 'invoice_id', 'promotion_id', 'checkIn', 'checkOut', 'estimatedArival', 'specialRequest', 'phoneNumber', 'roomNumber', 'status' ];
 
    console.log(req.body)
   
