@@ -35,7 +35,8 @@ const hotelSchema = new mongoose.Schema({
     promoted: { type: Boolean },
     description: { type: String, required: true },
     taxFile: { type: Array, required: true },
-    propertyFile: { type: Array, required: true }
+    propertyFile: { type: Array, required: true },
+    isVerified: { type: Boolean, required: true, default: false }
 });
 
 const Hotel = mongoose.model('Hotel', hotelSchema);

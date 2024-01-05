@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const { v4: uuidv4 } = require('uuid');
 
-const userSchema = new mongoose.Schema({
+const adminSchema = new mongoose.Schema({
   UUID: {
     type: String,
     default: uuidv4,
@@ -24,6 +24,6 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-const User = mongoose.model("User", userSchema);
+const Admin = mongoose.model("Admin", adminSchema);
 
-module.exports = User;
+module.exports = Admin;

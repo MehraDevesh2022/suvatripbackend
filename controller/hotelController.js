@@ -16,7 +16,7 @@ const transporter = nodemailer.createTransport({
 exports.getAllHotels = async (req, res) => {
   try {
     const hotels = await Hotel.find();
-    // console.log(hotels, "hotels");
+
     if (!hotels) {
       return res.status(404).json({ error: "Hotel not found!" });
     }
@@ -144,8 +144,8 @@ exports.createHotel = async (req, res) => {
       const mailOptions = {
         from: 'suvatrip1@gmail.com',
         to: req.user.email,
-        subject: 'Registration Successful',
-        text: 'Hello,\n\nYour registration was successful. Welcome aboard!'
+        subject: 'Approval Pending',
+        text: 'Hello,\n\nYour registration is under approval. We will let you know once approved.'
       };
     
       transporter.sendMail(mailOptions, (error, info) => {
