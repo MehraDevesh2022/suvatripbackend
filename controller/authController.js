@@ -9,7 +9,7 @@ const GoogleAuth = require("../model/googleAuthSchema");
 const FacebookAuth = require("../model/facebookAuth.js");
 const Hotel = require("../model/hotelSchema");
 const nodemailer = require("nodemailer");
-const { SOCIAIR_API_KEY } = require("../config/config");
+// const { SOCIAIR_API_KEY } = require("../config/config");
 
 // Create a SMTP transporter
 const transporter = nodemailer.createTransport({
@@ -44,6 +44,7 @@ const signupUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     let otp = generateOTP();
+    let phoneOtp = generateOTP();
 
     const user = await User.create({
       username: username,
@@ -51,9 +52,11 @@ const signupUser = async (req, res) => {
       email,
       phoneNumber: phoneNumber,
       role: "user",
-      otp: otp,
+      otp: otp, 
+      phoneOtp : phoneOtp,
+      phoneOtpVerify: false,
       otpVerify: false,
-    });
+    });  
 
     const payLoad = {
       name: user?.username,
@@ -70,24 +73,38 @@ const signupUser = async (req, res) => {
       text: `Hello,\n\nHere if you otp for user registration: ${otp}`,
     };
 
-    transporter.sendMail(mailOptions, (error, info) => {
+     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
         console.error("Error occurred:", error);
       } else {
         console.log("Email sent:", info.response);
       }
     });
-    res.cookie("token", token, { httpOnly: true });
-    res
-      .status(201)
-      .json({
-        message: "User created successfully",
-        token,
-        success: true,
-        user: user,
-      });
+
+    const numericPhoneNumber = phoneNumber.replace(/\D/g, "");
+    const sendOtpResult = await sendOtpViaSociair(numericPhoneNumber, phoneOtp);
+     
+     if (sendOtpResult.success) {
+      res
+        .status(201)
+        .json({
+          token,
+          message: "User created successfully",
+          success: true,
+        })
+        
+      }
+        else {
+          console.log(sendOtpResult.message);
+      res.status(500).json({ message: sendOtpResult.message });
+    }
+
+   
+  
+  
   } catch (error) {
     // Check if the error is due to duplicate key violation
+    console.log(error);
     if (error.code === 11000) {
       return res
         .status(400)
@@ -145,6 +162,7 @@ const userOtp = async (req, res) => {
     res.status(500).json({ message: "Something went wrong" });
   }
 };
+
 const userPhoneOtp = async (req, res) => {
   try {
     let { phoneNumber, otp } = req.body;
@@ -164,11 +182,17 @@ const userPhoneOtp = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (user.otp !== otp) {
+
+    if (user.otpVerify !== true) {
+      return res.status(400).json({ message: "Email OTP has not been verified" });
+    }
+
+    if (user.phoneOtp !== otp) {
       return res.status(400).json({ message: "Invalid OTP" });
     }
 
-    user.otpVerify = true;
+
+    user.phoneOtpVerify = true;
     await user.save();
     const token = generateToken(user);
     res
@@ -366,7 +390,7 @@ const editVendor = async (req, res) => {
 const signupVendor = async (req, res) => {
   try {
     const { username, email, password, phone } = req.body;
-
+     console.log(req.body, "req.body");
     if (!username || !email || !password) {
       return res.status(400).json({ message: "Please enter all fields" });
     }
