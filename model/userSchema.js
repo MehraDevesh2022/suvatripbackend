@@ -29,10 +29,20 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  phoneOtp: {
+    type: String,
+    required: true,
+  },
 
 //  isOtpExpired: {
 //     type: Date,
 //   },
+
+phoneOtpVerify: {
+    type: Boolean,  
+    default: false,
+    required: true
+  },
 
   otpVerify: {
     type: Boolean,
