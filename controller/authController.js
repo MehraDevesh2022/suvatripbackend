@@ -9,6 +9,7 @@ const GoogleAuth = require("../model/googleAuthSchema");
 const FacebookAuth = require("../model/facebookAuth.js");
 const Hotel = require("../model/hotelSchema");
 const nodemailer = require("nodemailer");
+const { SOCIAIR_API_KEY } = require("../config/config");
 
 // Create a SMTP transporter
 const transporter = nodemailer.createTransport({
@@ -79,7 +80,12 @@ const signupUser = async (req, res) => {
     res.cookie("token", token, { httpOnly: true });
     res
       .status(201)
-      .json({ message: "User created successfully", token, success: true });
+      .json({
+        message: "User created successfully",
+        token,
+        success: true,
+        user: user,
+      });
   } catch (error) {
     // Check if the error is due to duplicate key violation
     if (error.code === 11000) {
@@ -129,7 +135,50 @@ const userOtp = async (req, res) => {
 
     res
       .status(200)
-      .json({ success: true, message: "OTP verified successfully" });
+      .json({
+        success: true,
+        message: "OTP verified successfully",
+        user: existingVendor,
+      });
+  } catch (error) {
+    console.error("Error verifying OTP:", error);
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+const userPhoneOtp = async (req, res) => {
+  try {
+    let { phoneNumber, otp } = req.body;
+
+     console.log(req.body, "password reset")
+    if (!phoneNumber || !otp) {
+      return res
+        .status(400)
+        .json({ message: "Please provide phone number and OTP" });
+    }
+
+    const numericPhoneNumber = phoneNumber.replace(/\D/g, "");
+   console.log(numericPhoneNumber, "numericPhoneNumber")
+   const user = await User.findOne({ phoneNumber: numericPhoneNumber });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.otp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    user.otpVerify = true;
+    await user.save();
+    const token = generateToken(user);
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: "OTP verified successfully",
+        user: user,
+        token: token,
+      });
   } catch (error) {
     console.error("Error verifying OTP:", error);
     res.status(500).json({ message: "Something went wrong" });
@@ -173,7 +222,7 @@ const signupGoogle = async (req, res) => {
       const token = generateToken(user, payLoad);
       return res
         .status(200)
-        .json({ message: "User already exists", token: token });
+        .json({ message: "User already exists", token: token, user: user });
     }
 
     const user = await GoogleAuth.create({
@@ -190,20 +239,17 @@ const signupGoogle = async (req, res) => {
     const token = generateToken(user, payLoad);
     res
       .status(201)
-      .json({ message: "User Created Successfully", token: token });
+      .json({ message: "User Created Successfully", token: token, user: user });
   } catch (error) {
     console.error("Error during Google signup:", error);
 
     if (error.response) {
-      // The request was made and the server responded with a status code
       console.error("Response data:", error.response.data);
       console.error("Response status:", error.response.status);
       console.error("Response headers:", error.response.headers);
     } else if (error.request) {
-      // The request was made but no response was received
       console.error("No response received:", error.request);
     } else {
-      // Something happened in setting up the request that triggered an Error
       console.error("Error setting up the request:", error.message);
     }
 
@@ -240,7 +286,9 @@ const signUpFacebookAuth = async (req, res) => {
       };
 
       const token = generateToken(userData, payLoad);
-      return res.status(200).json({ message: "User already exists", token });
+      return res
+        .status(200)
+        .json({ message: "User already exists", token, user: userData });
     } else {
       user = await FacebookAuth.create({
         username: data?.name,
@@ -258,7 +306,11 @@ const signUpFacebookAuth = async (req, res) => {
       const token = generateToken(user, payLoad);
       res
         .status(201)
-        .json({ message: "User Created Successfully", token: token });
+        .json({
+          message: "User Created Successfully",
+          token: token,
+          user: user,
+        });
     }
   } catch (error) {
     console.log(error);
@@ -340,9 +392,9 @@ const signupVendor = async (req, res) => {
         }
       );
 
-      let updatedData = { email: email, username: username, _id: isVendor._id }
+      let updatedData = { email: email, username: username, _id: isVendor._id };
 
-      console.log(updatedData, 'vvvvvv');
+      console.log(updatedData, "vvvvvv");
 
       const token = generateToken(updatedData);
 
@@ -398,8 +450,6 @@ const signupVendor = async (req, res) => {
         .status(201)
         .json({ token, message: "Vendor created successfully", createvendor });
     }
-
-
   } catch (error) {
     console.error("Error creating vendor:", error);
     res.status(500).json({ message: "Something went wrong" });
@@ -464,7 +514,7 @@ const signupAdmin = async (req, res) => {
     const token = generateToken(user);
     res.cookie("token", token, { httpOnly: true });
     res.status(201).json({ message: "Superadmin created successfully" });
-  } catch (error) { }
+  } catch (error) {}
 };
 
 //LOGIN IN USER
@@ -495,10 +545,8 @@ const loginUser = async (req, res) => {
       };
 
       const token = generateToken(user, payLoad);
-      console.log("Token:", token);
-      res.status(201).json({ token });
 
-
+      res.status(201).json({ token, user: user });
     } else if (role === "vendor") {
       const findvendor = await vendor.findOne({ email });
 
@@ -532,7 +580,6 @@ const loginUser = async (req, res) => {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-
       if (findvendor.otpVerify === false) {
         return res.status(400).json({ message: "User not registered" });
       }
@@ -545,10 +592,22 @@ const loginUser = async (req, res) => {
         const token = generateToken(findvendor);
         // Send the token in the response
         console.log("hotel not registered");
-        res.status(201).json({ token, registration: false, message: "Hotel not registered" });
+        res
+          .status(201)
+          .json({
+            token,
+            registration: false,
+            message: "Hotel not registered",
+          });
       } else {
         const token = generateToken(findvendor);
-        res.status(201).json({ registration: true, message: "Hotel already registered", token: token });
+        res
+          .status(201)
+          .json({
+            registration: true,
+            message: "Hotel already registered",
+            token: token,
+          });
       }
     } else if (role === "admin") {
       const findadmin = await admin.findOne({ email });
@@ -564,7 +623,7 @@ const loginUser = async (req, res) => {
         message: "Admin logged in successfully",
         token,
         success: true,
-        role: 'admin'
+        role: "admin",
       });
     } else {
       res.status(400).json({ message: "User not found" });
@@ -577,7 +636,7 @@ const loginUser = async (req, res) => {
 
 const loginviamobile = async (req, res) => {
   try {
-    const number = req.body.contactno;
+    const { username, email, password, phoneNumber } = req.body;
     const otp = generateOTP();
     const expirationTime = new Date(Date.now() + 5 * 60 * 1000);
     await storeOTP(number, otp, expirationTime);
@@ -593,26 +652,78 @@ const loginviamobile = async (req, res) => {
 
 const sendOtpViaSociair = async (number, otp) => {
   try {
-    const user = await User.findOne({ number });
-
-    if (!user) {
-      throw new Error("User not found");
-    }
-
     const url = "https://sms.sociair.com/api/sms";
+
     const headers = {
       Authorization: `Bearer ${config.SOCIAIR_API_KEY}`,
       "Content-Type": "application/json",
       Accept: "application/json",
     };
+
     const payload = {
       message: `Your OTP is: ${otp}`,
       mobile: number,
     };
-    return response.data;
+
+    const response = await axios.post(url, payload, { headers });
+
+    if (response.data.message === "Success! SMS has been sent") {
+      return { success: true };
+    } else {
+      return { success: false, message: "Failed to send OTP" };
+    }
   } catch (error) {
     console.error("Error sending OTP via Sociair SMS:", error);
-    throw error;
+    return { success: false, message: "Failed to send OTP" };
+  }
+};
+
+const SignupViaPhone = async (req, res) => {
+  try {
+    const { username, email, password, phoneNumber } = req.body;
+
+    if (!phoneNumber || !username || !email || !password) {
+      return res.status(400).json({ message: "Please enter all fields" });
+    }
+
+    // Extract numeric part from the phone number
+    const numericPhoneNumber = phoneNumber.replace(/\D/g, "");
+
+    console.log(typeof numericPhoneNumber, numericPhoneNumber);
+
+    const isUserExist = await User.findOne({ phoneNumber: numericPhoneNumber });
+    if (isUserExist) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    let otp = generateOTP();
+
+    const sendOtpResult = await sendOtpViaSociair(numericPhoneNumber, otp);
+
+    if (sendOtpResult.success) {
+      const user = await User.create({
+        username: username,
+        password: hashedPassword,
+        email,
+        phoneNumber: numericPhoneNumber,
+        otp: otp,
+        otpVerify: false,
+      });
+
+      res
+        .status(200)
+        .json({
+          message: "OTP sent successfully",
+          role: "user",
+          success: true,
+        });
+    } else {
+      res.status(500).json({ message: sendOtpResult.message });
+    }
+  } catch (error) {
+    console.error("Error during signup:", error);
+    res.status(500).json({ message: "Something went wrong" });
   }
 };
 
@@ -649,7 +760,7 @@ const generateToken = (
     email: user?.email,
   }
 ) => {
-  console.log(payload, 'tokenDATA');
+  console.log(payload, "tokenDATA");
   return jwt.sign(payload, config.JWT_SECRET, { expiresIn: "1h" });
 };
 
@@ -820,7 +931,6 @@ const profile = async (req, res) => {
 
 const vendorProfile = async (req, res) => {
   try {
-
     const { email } = req.user;
     const user = await vendor.findOne({
       email: { $regex: new RegExp(`^${email}$`, "i") },
@@ -834,7 +944,6 @@ const vendorProfile = async (req, res) => {
       user: { name: user.username, email: user.email },
       success: true,
     });
-
   } catch (error) {
     console.error("Error during login:", error);
     res.status(500).json({ message: "Something went wrong" });
@@ -871,7 +980,6 @@ const updatePassword = async (req, res) => {
 
     if (!isCurrentPasswordValid) {
       return res.status(400).json({ message: "Current password is incorrect" });
-
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -908,5 +1016,7 @@ module.exports = {
   changePassword,
   profile,
   updatePassword,
-  vendorProfile
+  vendorProfile,
+  SignupViaPhone,
+  userPhoneOtp,
 };

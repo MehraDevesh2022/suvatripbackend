@@ -15,11 +15,11 @@ const bookingSchema = new mongoose.Schema({
   promotion_id:  { type: mongoose.Schema.Types.ObjectId, ref: "Promotion" },
   checkIn: {
     type: Date,
-    required: true,
+    // required: true,
   },
   checkOut: {
     type: Date,
-    required: true,
+    // required: true,
   },
   estimatedArival: {
     type: String,
@@ -30,6 +30,10 @@ const bookingSchema = new mongoose.Schema({
   },
   roomNumber: {
     type: Number,
+    required: true,
+  },
+  phoneNumber : {
+    type: String,
     required: true,
   },
   status: {
