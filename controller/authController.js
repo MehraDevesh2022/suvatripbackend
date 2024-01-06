@@ -521,14 +521,14 @@ const signupAdmin = async (req, res) => {
     if (!name || !email || !password) {
       return res.status(400).json({ message: "Please enter all fields" });
     }
-    const isUser = await User.findOne({ email });
+    const isUser = await admin.findOne({ email });
 
     if (isUser) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({ message: "Admin already exists" });
     }
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await User.create({
+    const user = await admin.create({
       username: name,
       password: hashedPassword,
       email,
@@ -546,8 +546,6 @@ const loginUser = async (req, res) => {
   try {
     console.log("Trying login user");
     const { email, password, role } = req.body;
-
-    console.log(req.body, "llooggiinn");
 
     if (!role || !email || !password) {
       return res.status(400).json({ message: "Please enter all fields" });
@@ -576,20 +574,23 @@ const loginUser = async (req, res) => {
     } else if (role === "vendor") {
       const findvendor = await vendor.findOne({ email });
 
-      console.log(findvendor, "findvendor");
-
       if (!findvendor || !bcrypt.compareSync(password, findvendor.password)) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      if (findvendor.otpVerify === false) {
+      const hotel = await Hotel.findOne({vendor_id: findvendor._id});
+
+      if ( !hotel ) {
+        return res.status(400).json({ message: "User not registered" });
+      }
+
+      if (findvendor.otpVerify === false || hotel.isVerified === false ) {
         return res.status(400).json({ message: "User not registered" });
       }
 
       const token = generateToken(findvendor);
 
-      // Send the token in the response
-      res.status(201).json({ token, role: "vendor" });
+      res.status(201).json({ token, role: 'vendor', id: findvendor._id, hotel_id: hotel._id });
     } else if (role === "vendor-admin") {
       // console.log(req.body, "req.body");
 
