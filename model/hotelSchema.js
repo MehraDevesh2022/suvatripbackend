@@ -13,7 +13,7 @@ const hotelSchema = new mongoose.Schema({
     rooms: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Room' }],
     propertyName: { type: String, required: true },
     propertyType: { type: String, required: true },
-    rating: { type: String, default: "2" },
+    rating: { type: String, default: "4" },
     currency: { type: String, required: true },
     contactNo: { type: String, required: true },
     country: { type: String, required: true },
