@@ -2,6 +2,8 @@
 const Hotel = require("../model/hotelSchema");
 const multerConfigs = require("../middleWare/multerConfig");
 const nodemailer = require("nodemailer");
+const Room = require("../model/roomSchema");
+const moment = require("moment")
 
 // Create a SMTP transporter
 const transporter = nodemailer.createTransport({
@@ -39,6 +41,100 @@ exports.getAllHotels = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+const Booking = require('../model/bookingSchema');
+
+exports.filterHotels = async (req, res) => {
+  const { checkOut, location } = req.body;
+
+  const sanitizedLocation = location.trim();
+
+  const checkIn = moment(req.body.checkIn, "M/D/YYYY, h:mm:ss A").toDate();
+
+  console.log(checkIn, checkOut, 'ffffff');
+
+  try {
+    const hotels = await Hotel.find({ country: { $regex: new RegExp(`^${sanitizedLocation}$`, "i") } });
+
+    if (!hotels || hotels.length === 0) {
+      return res.status(404).json({ error: "Hotels not found!" });
+    }
+
+    const bookingsWithinRange = await Booking.find({
+      $and: [
+        {
+          $or: [
+            {
+              $and: [
+                { checkIn: { $gte: new Date(checkIn) } },
+                { checkIn: { $lte: new Date(checkOut) } }
+              ]
+            },
+            {
+              $and: [
+                { checkOut: { $gte: new Date(checkIn) } },
+                { checkOut: { $lte: new Date(checkOut) } }
+              ]
+            },
+            {
+              $and: [
+                { checkIn: { $lte: new Date(checkIn) } },
+                { checkOut: { $gte: new Date(checkOut) } }
+              ]
+            },
+            {
+              $or: [
+                { checkIn: { $eq: new Date(checkIn) } },
+                { checkOut: { $eq: new Date(checkOut) } }
+              ]
+            }
+          ],
+        },
+        { hotel_id: { $in: hotels.map((hotel) => hotel._id) } },
+      ],
+    }).populate('room_id')
+
+    const sumOfBooking = bookingsWithinRange.reduce((total, room) => total + room.noOfRooms, 0);
+
+    const roomIds = bookingsWithinRange.map((booking) => booking.room_id);
+
+    const rooms = await Room.find({ _id: { $in: roomIds } });
+
+    const sumOfRooms = rooms.reduce((total, room) => total + room.noOfRooms, 0);
+
+    console.log(parseInt(sumOfBooking), parseInt(sumOfRooms), 'pppp');
+
+    if(parseInt(sumOfBooking) >= parseInt(sumOfRooms)) {
+      const hotelIdsWithBookings = bookingsWithinRange.map((booking) => booking.hotel_id.toString());
+
+      filteredHotels = hotels.filter((hotel) =>
+        !hotelIdsWithBookings.includes(hotel._id.toString())
+      );
+    }
+    else {
+      filterHotels = hotels;
+    }
+
+    if (req.isHotelAccess) {
+      return res.json({
+        status: true,
+        message: "Hotels available within the date range",
+        data: filteredHotels,
+        isHotelAccess: true,
+      });
+    } else {
+      return res.json({
+        status: true,
+        message: "Hotels available within the date range",
+        data: filteredHotels,
+        isHotelAccess: false,
+      });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 
 exports.createHotel = async (req, res) => {
   const { uploadPicture } = multerConfigs;
@@ -100,33 +196,28 @@ exports.createHotel = async (req, res) => {
     };
 
     const pictureLinks = req.files["picture"].map((file, index) => ({
-      link: `${process.env.HOST}${
-        ":" + process.env.PORT
-      }/uploads/propertyPicture/${file.filename}`,
+      link: `${process.env.HOST}${":" + process.env.PORT
+        }/uploads/propertyPicture/${file.filename}`,
       main: req.body.main ? req.body.main[index] : false,
     }));
     const roomPictureLinks = req.files["roomPicture"].map((file, index) => ({
-      link: `${process.env.HOST}${":" + process.env.PORT}/uploads/roomPicture/${
-        file.filename
-      }`,
+      link: `${process.env.HOST}${":" + process.env.PORT}/uploads/roomPicture/${file.filename
+        }`,
       main: req.body.roomMain ? req.body.roomMain[index] : false,
     }));
     const areaPictureLinks = req.files["areaPicture"].map((file, index) => ({
-      link: `${process.env.HOST}${":" + process.env.PORT}/uploads/areaPicture/${
-        file.filename
-      }`,
+      link: `${process.env.HOST}${":" + process.env.PORT}/uploads/areaPicture/${file.filename
+        }`,
       main: req.body.areaMain ? req.body.areaMain[index] : false,
     }));
     const taxDocumentLinks = req.files["taxFile"].map((file) => ({
-      link: `${process.env.HOST}${
-        ":" + process.env.PORT
-      }/uploads/documents/tax/${file.filename}`,
+      link: `${process.env.HOST}${":" + process.env.PORT
+        }/uploads/documents/tax/${file.filename}`,
     }));
 
     const propertyDocumentLinks = req.files["propertyFile"].map((file) => ({
-      link: `${process.env.HOST}${
-        ":" + process.env.PORT
-      }/uploads/documents/property/${file.filename}`,
+      link: `${process.env.HOST}${":" + process.env.PORT
+        }/uploads/documents/property/${file.filename}`,
     }));
 
     try {
@@ -173,65 +264,65 @@ exports.createHotel = async (req, res) => {
 
 // Function to filter hotels based on location
 
-exports.filterHotels = async (req, res) => {
-  try {
-    const { location, startDate, endDate, children, room, adult } = req.query;
+// exports.filterHotels = async (req, res) => {
+//   try {
+//     const { location, startDate, endDate, children, room, adult } = req.query;
 
-    console.log(req.query, "req.query");
+//     console.log(req.query, "req.query");
 
- 
-    if (!location || typeof location !== "string") {
-      return res.status(400).json({ error: "Invalid location parameter" });
-    }
 
-    const sanitizedLocation = location.trim();
+//     if (!location || typeof location !== "string") {
+//       return res.status(400).json({ error: "Invalid location parameter" });
+//     }
 
- 
-    if (!sanitizedLocation) {
-      return res
-        .status(400)
-        .json({ error: "Location parameter cannot be empty" });
-    }
+//     const sanitizedLocation = location.trim();
 
-  
-    const decodedStartDate = new Date(decodeURIComponent(startDate));
-    const decodedEndDate = new Date(decodeURIComponent(endDate));
 
-    const formatTime = (date) => {
-      const hours = String(date.getUTCHours()).padStart(2, '0');
-      const minutes = String(date.getUTCMinutes()).padStart(2, '0');
-      return `${hours}:${minutes}`;
-    };
+//     if (!sanitizedLocation) {
+//       return res
+//         .status(400)
+//         .json({ error: "Location parameter cannot be empty" });
+//     }
 
-   
-    const checkInTime = formatTime(decodedStartDate);
-    const checkOutTime = formatTime(decodedEndDate);
 
-    const filteredHotels = await Hotel.find({
-      country: { $regex: new RegExp(`^${sanitizedLocation}$`, "i") },
-      // roomsNo: { $gte: room },
-      // 'hotelRules.allowChildren': children === 'yes',
-      // 'hotelRules.checkInData.from': { $lte: checkInTime },
-      // 'hotelRules.checkInData.until': { $gte: checkInTime },
-      // 'hotelRules.checkOutData.from': { $lte: checkOutTime },
-      // 'hotelRules.checkOutData.until': { $gte: checkOutTime },
-    })// .populate({
-    //   path: 'rooms',
-    //   match: { noOfRooms: { $gte: room } }, 
-    // });
+//     const decodedStartDate = new Date(decodeURIComponent(startDate));
+//     const decodedEndDate = new Date(decodeURIComponent(endDate));
 
-    console.log(filteredHotels, "filteredHotels");
+//     const formatTime = (date) => {
+//       const hours = String(date.getUTCHours()).padStart(2, '0');
+//       const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+//       return `${hours}:${minutes}`;
+//     };
 
-    res.status(200).json({
-      status: true,
-      message: "Hotel data fetched successfully",
-      data: filteredHotels,
-    });
-  } catch (error) {
-    console.error("Error filtering hotels:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-};
+
+//     const checkInTime = formatTime(decodedStartDate);
+//     const checkOutTime = formatTime(decodedEndDate);
+
+//     const filteredHotels = await Hotel.find({
+//       country: { $regex: new RegExp(`^${sanitizedLocation}$`, "i") },
+//       // roomsNo: { $gte: room },
+//       // 'hotelRules.allowChildren': children === 'yes',
+//       // 'hotelRules.checkInData.from': { $lte: checkInTime },
+//       // 'hotelRules.checkInData.until': { $gte: checkInTime },
+//       // 'hotelRules.checkOutData.from': { $lte: checkOutTime },
+//       // 'hotelRules.checkOutData.until': { $gte: checkOutTime },
+//     })// .populate({
+//     //   path: 'rooms',
+//     //   match: { noOfRooms: { $gte: room } }, 
+//     // });
+
+//     console.log(filteredHotels, "filteredHotels");
+
+//     res.status(200).json({
+//       status: true,
+//       message: "Hotel data fetched successfully",
+//       data: filteredHotels,
+//     });
+//   } catch (error) {
+//     console.error("Error filtering hotels:", error);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// };
 
 // exports.getHotelById = async (req, res) => {
 //   try {

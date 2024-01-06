@@ -2,23 +2,39 @@ const Booking = require("../model/bookingSchema");
  
 exports.createBooking = async (req, res) => {
   try {
-    const allowedFields = ['hotel_id', 'room_id', 'user_id', 'invoice_id', 'promotion_id', 'checkIn', 'checkOut', 'estimatedArival', 'specialRequest', 'phoneNumber', 'roomNumber', 'status' ];
+    const allowedFields = ['hotel_id', 'room_id', 'user_id', 'invoice_id', 'promotion_id', 'checkIn', 'checkOut', 'estimatedArrival', 'specialRequest', 'phoneNumber', 'noOfRooms'];
 
-   console.log(req.body)
-  
+    let bookingData = [];
 
-    const newBookingData = {};
-    Object.keys(req.body).forEach(key => {
-      if (allowedFields.includes(key)) {
-        newBookingData[key] = req.body[key];
-      }
-    });
-       
-    const newBooking = await Booking.create(newBookingData);
+    for (const room of req.body.rooms) {
+      const restData = { ...req.body };
+      delete restData.rooms;
+
+      const data = {
+        room_id: room.roomId,
+        noOfRooms: room.count,
+        checkIn: restData.checkInDate,
+        checkOut: restData.checkOutDate,
+        ...restData
+      };
+
+      const newBookingData = {};
+      Object.keys(data).forEach(key => {
+        if (allowedFields.includes(key)) {
+          newBookingData[key] = data[key];
+        }
+      });
+
+      console.log(newBookingData, 'nnnnnnn');
+
+      const createdBooking = await Booking.create(newBookingData);
+      bookingData.push(createdBooking);
+    }
+
     res.status(201).json({
       status: true,
       message: 'Booking created successfully',
-      data: newBooking
+      data: bookingData
     });
   } catch (err) {
     res.status(400).json({
@@ -27,6 +43,7 @@ exports.createBooking = async (req, res) => {
     });
   }
 };
+
 
 exports.getAllBookings = async (req, res) => {
   try {
