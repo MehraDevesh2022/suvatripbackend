@@ -1,11 +1,11 @@
 const Booking = require("../model/bookingSchema");
- 
+  
 exports.createBooking = async (req, res) => {
   try {
     const allowedFields = ['hotel_id', 'room_id', 'user_id', 'invoice_id', 'promotion_id', 'checkIn', 'checkOut', 'estimatedArival', 'specialRequest', 'phoneNumber', 'roomNumber', 'status' ];
 
    console.log(req.body)
-  
+   
 
     const newBookingData = {};
     Object.keys(req.body).forEach(key => {
