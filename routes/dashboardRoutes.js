@@ -9,6 +9,6 @@ router.get("/get-hotel-by-id", authenticateToken, dashboardController.getHotelBy
 
 router.get("/get-hotel-by-vendor-id/:id", authenticateToken, dashboardController.getHotelByVendorId);
 
-router.get("/approve-hotel/:id", authenticateToken, dashboardController.approveHotel);
+router.patch("/approve-hotel/:id", authenticateToken, dashboardController.approveHotel);
 
 module.exports = router;
