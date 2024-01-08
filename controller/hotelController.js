@@ -369,12 +369,14 @@ exports.createHotel = async (req, res) => {
 exports.getHotelFilterd = async (req, res) => {
   try {
     // Construct the MongoDB query based on the request query parameters
-    console.log(req.query , "req.query")
+    console.log(req.query , "req.query") 
     const queryObj = buildQuery(req.query);
+    // console.log(queryObj.hotelQuery , "queryObj");   
+    // console.log(queryObj , "queryObj");
 
-  
-    const filteredHotels = await Hotel.find(queryObj.query);
-    console.log(filteredHotels , "filteredHotels")
+   
+    const filteredHotels = await Hotel.find(queryObj.hotelQuery);      
+    console.log(filteredHotels , "filteredHotels")        
      
     // if(queryObj.roomQuery) {
     //   const roomFilteredHotels = await Room.find(queryObj.roomQuery);
@@ -388,54 +390,46 @@ exports.getHotelFilterd = async (req, res) => {
     res.status(200).json({ success: true, message: 'Hotels fetched successfully', data: filteredHotels });  
 
   } catch (error) {
-    console.error("Error fetching filtered hotels:", error);
+    console.error("Error fetching filtered hotels:", error); 
     res.status(500).json({ error: "Internal Server Error" });
   }
-};
-
+}; 
+ 
 const buildQuery = (queryParams) => {
   const query = {};
   const roomQuery = {}; // Separate query for room schema
 
   if (queryParams.starRating) {
-    if (Array.isArray(queryParams.starRating)) {
-      query.rating = { $in: queryParams.starRating.map(Number) };
-    } else {
-      const starRatingArray = queryParams.starRating.split(',').map(Number);
-      query.rating = { $in: starRatingArray };
-    }
+    const starRatingArray = queryParams.starRating.split(',').map(Number);
+    query.rating = { $in: starRatingArray };
   }
 
   if (queryParams.propertyType) {
-    if (Array.isArray(queryParams.propertyType)) {
-      query.propertyType = { $in: queryParams.propertyType };
-    } else {
-      query.propertyType = { $in: [queryParams.propertyType] };
-    }
+    const propertyTypeArray = queryParams.propertyType.split(',');
+    query.propertyType = { $in: propertyTypeArray };
   }
 
   if (queryParams.facilities) {
     const facilitiesArray = queryParams.facilities.split(',');
     query['facilities.accommodation'] = { $in: facilitiesArray };
-  }
+  } 
 
   if (queryParams.minBudget && queryParams.maxBudget) {
     roomQuery.weekdayPrice = {
       $gte: Number(queryParams.minBudget),
       $lte: Number(queryParams.maxBudget),
-    };
+    };  
   }
 
   if (queryParams.priceRange) {
     console.log(queryParams.priceRange, 'priceRange');
     switch (queryParams.priceRange) {
-     
       case 'NPR 0 - 1500':
         roomQuery.weekdayPrice = { $lte: 1500 };
         break;
       case 'NPR 1500 - 2500':
         roomQuery.weekdayPrice = { $gte: 1500, $lte: 2500 };
-        break;
+        break; 
       case 'NPR 2500 - 3500':
         roomQuery.weekdayPrice = { $gte: 2500, $lte: 3500 };
         break;
@@ -444,30 +438,31 @@ const buildQuery = (queryParams) => {
         break;
       case 'NPR 4500+':
         roomQuery.weekdayPrice = { $gte: 4500 };
-        break; 
+        break;
       default:
         break;
-    } 
+    }
   }
-console.log(roomQuery , "roomQuery");
-console.log(query , "query");
+  console.log(roomQuery, 'roomQuery');
+  console.log(query, 'query');
   return { hotelQuery: query, roomQuery };
 };
 
 
+  
 exports.getHotelById = async (req, res) => {
   try {
     const { id } = req.params;
     const { fields } = req.query;
 
     let query = Hotel.findOne({ _id: id }).populate("rooms");
-    //  console.log(query , "query");
+    //  console.log(query , "query"); 
     if (fields) {
       const fieldsArray = fields.split(",");
       query = query.select(fieldsArray.join(" "));
     }
-
-    const hotels = await query.exec();
+ 
+    const hotels = await query.exec(); 
 
     // console.log(hotels, "hotels");
 
@@ -519,9 +514,9 @@ exports.updateHotel = async (req, res) => {
   if (!isValidOperation) {
     return res.status(400).json({ error: "Invalid fields in request!" });
   }
-
+   
   try {
-    const hotel = await Hotel.findOneAndUpdate(
+    const hotel = await Hotel.findOneAndUpdate(  
       { _id: req.params.id },
       { $set: req.body },
       { new: true, runValidators: true }
@@ -535,7 +530,7 @@ exports.updateHotel = async (req, res) => {
       status: true,
       message: "Hotel data updated successfully",
       data: hotel,
-    });
+    }); 
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -552,5 +547,5 @@ exports.deleteHotel = async (req, res) => {
     res.json({ status: true, message: "Hotel deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
-  }
+  } 
 };
