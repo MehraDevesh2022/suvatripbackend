@@ -100,9 +100,13 @@ exports.getAllHotels = async (req, res) => {
 
 exports.approveHotel = async (req, res) => {
   try {
+    const {status} = req.body;
+
+    console.log(status);
+
     const hotel = await Hotel.findOneAndUpdate(
       { _id: req.params.id },
-      { $set: { isVerified: true } },
+      { $set: { isVerified: status } },
       { new: true, runValidators: true }
     ).populate('vendor_id');
 
@@ -110,12 +114,7 @@ exports.approveHotel = async (req, res) => {
       return res.status(404).json({ error: "Hotel not found!" });
     }
 
-    if (hotel.isVerified === true) {
-      res.json({
-        status: true,
-        message: "Hotel already approved"
-      });
-    }
+    const hotels = await Hotel.find();
 
     const mailOptions = {
       from: 'suvatrip1@gmail.com',
@@ -135,7 +134,7 @@ exports.approveHotel = async (req, res) => {
     res.json({
       status: true,
       message: "Hotel verified successfully",
-      data: hotel,
+      data: hotels,
     });
   } catch (err) {
     res.status(400).json({ message: err.message });
