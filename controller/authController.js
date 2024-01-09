@@ -3,13 +3,17 @@ const User = require("../model/userSchema");
 const admin = require("../model/adminSchema");
 const vendor = require("../model/vendorSchema");
 const bcrypt = require("bcryptjs");
-const config = require("../config/config");
+const config = require("../config/config"); 
 const axios = require("axios");
 const GoogleAuth = require("../model/googleAuthSchema");
 const FacebookAuth = require("../model/facebookAuth.js");
 const Hotel = require("../model/hotelSchema");
 const nodemailer = require("nodemailer");
-// const { SOCIAIR_API_KEY } = require("../config/config");
+
+const { TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN } = require("../config/config");
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const client = require("twilio")(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+// const { SOCIAIR_API_KEY } = ;
 
 // Create a SMTP transporter
 const transporter = nodemailer.createTransport({
@@ -21,10 +25,11 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-///SIGN UP USER
+///SIGN UP USER 
 const signupUser = async (req, res) => {
   try {
     console.log("trying signup");
+    console.log(req.body, "req.body")
     const { username, email, password, phoneNumber } = req.body;
 
     if (!username || !email || !password) {
@@ -32,18 +37,19 @@ const signupUser = async (req, res) => {
     }
 
     // Check for existing user by email
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ $or: [{ email }, { phoneNumber }] });
 
-    console.log(existingUser, "userLoggedIN");
-
+  
     if (existingUser) {
+     
+      
       return res.status(400).json({ message: "User already exists" });
     }
 
     // If email is unique, proceed with user creation
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    let otp = generateOTP();
+    let otp = generateOTP(); 
     let phoneOtp = generateOTP();
 
     const user = await User.create({
@@ -52,11 +58,11 @@ const signupUser = async (req, res) => {
       email,
       phoneNumber: phoneNumber,
       role: "user",
-      otp: otp, 
-      phoneOtp : phoneOtp,
+      otp: otp,
+      phoneOtp: phoneOtp,
       phoneOtpVerify: false,
       otpVerify: false,
-    });  
+    });
 
     const payLoad = {
       name: user?.username,
@@ -73,7 +79,7 @@ const signupUser = async (req, res) => {
       text: `Hello,\n\nHere if you otp for user registration: ${otp}`,
     };
 
-     transporter.sendMail(mailOptions, (error, info) => {
+    transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
         console.error("Error occurred:", error);
       } else {
@@ -82,26 +88,59 @@ const signupUser = async (req, res) => {
     });
 
     const numericPhoneNumber = phoneNumber.replace(/\D/g, "");
-    const sendOtpResult = await sendOtpViaSociair(numericPhoneNumber, phoneOtp);
-     
-     if (sendOtpResult.success) {
-      res
-        .status(201)
-        .json({
+
+    //check if country code is from nepal then send otp via sociair else send otp via twilio
+    if (phoneNumber.startsWith("977")) {
+      const sendOtpResult = await sendOtpViaSociair(
+        numericPhoneNumber,
+        phoneOtp
+      );
+
+      if (sendOtpResult.success) {
+        res.status(201).json({
           token,
           message: "User created successfully",
           success: true,
-        })
-        
-      }
-        else {
-          console.log(sendOtpResult.message);
-      res.status(500).json({ message: sendOtpResult.message });
-    }
+        });
+      } else {
+        console.log(sendOtpResult.message);
 
-   
-  
-  
+        // Delete the user from the database if user creation fails
+        await User.deleteOne({ _id: user._id });
+
+        res.status(500).json({ message: sendOtpResult.message });
+      }
+    } else {
+
+       console.log("twilio otp")
+      client.messages
+        .create({
+          from: "whatsapp:+14155238886",
+          body: `Your SuvaTrip Account OTP is ${phoneOtp}`,
+          to: `whatsapp:${numericPhoneNumber}`,
+        })
+        .then((message) => {
+        console.log(message, "message.sid")
+        res.status(201).json({
+          token,
+          message: "User created successfully",
+          success: true,
+
+        })})
+
+
+// for via sms
+ 
+// client.messages
+//     .create({
+//         body: 'hi',
+//         from: '+12068662692',
+//         to: '+918171280446'
+//     })
+//     .then(message => console.log(message.sid))
+
+         
+    }
   } catch (error) {
     // Check if the error is due to duplicate key violation
     console.log(error);
@@ -109,6 +148,11 @@ const signupUser = async (req, res) => {
       return res
         .status(400)
         .json({ message: "User with this email already exists" });
+    }
+
+    // Delete the user from the database if user creation fails
+    if (error.name === "ValidationError") {
+      await User.deleteOne({ _id: user._id });
     }
 
     console.error("Error creating user:", error);
@@ -123,13 +167,14 @@ const userOtp = async (req, res) => {
     if (isReset == undefined) {
       isReset = false;
     }
-    console.log(req.body, "password reset");
+    console.log(req.body, "password reset user otp");
 
     if (!email || !otp) {
       return res.status(400).json({ message: "Please provide email and OTP" });
     }
 
     const existingVendor = await User.findOne({ email });
+    console.log(existingVendor, "existingVendor");
 
     if (!existingVendor) {
       return res.status(404).json({ message: "Vendor not found" });
@@ -150,13 +195,11 @@ const userOtp = async (req, res) => {
     existingVendor.otpVerify = true;
     await existingVendor.save();
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "OTP verified successfully",
-        user: existingVendor,
-      });
+    res.status(200).json({
+      success: true,
+      message: "OTP verified successfully",
+      user: existingVendor,
+    });
   } catch (error) {
     console.error("Error verifying OTP:", error);
     res.status(500).json({ message: "Something went wrong" });
@@ -167,47 +210,45 @@ const userPhoneOtp = async (req, res) => {
   try {
     let { phoneNumber, otp } = req.body;
 
-     console.log(req.body, "password reset")
+    console.log(req.body, "password reset");
     if (!phoneNumber || !otp) {
       return res
         .status(400)
         .json({ message: "Please provide phone number and OTP" });
     }
-
+   
     const numericPhoneNumber = phoneNumber.replace(/\D/g, "");
-   console.log(numericPhoneNumber, "numericPhoneNumber")
-   const user = await User.findOne({ phoneNumber: numericPhoneNumber });
 
+    const user = await User.findOne({ phoneNumber: numericPhoneNumber });
+    console.log(user, "user phone otp");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-
     if (user.otpVerify !== true) {
-      return res.status(400).json({ message: "Email OTP has not been verified" });
+      return res
+        .status(400)
+        .json({ message: "Email OTP has not been verified" });
     }
 
     if (user.phoneOtp !== otp) {
       return res.status(400).json({ message: "Invalid OTP" });
     }
 
-
     user.phoneOtpVerify = true;
     await user.save();
     const token = generateToken(user);
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "OTP verified successfully",
-        user: user,
-        token: token,
-      });
+    res.status(200).json({
+      success: true,
+      message: "OTP verified successfully",
+      user: user,
+      token: token,
+    });
   } catch (error) {
     console.error("Error verifying OTP:", error);
     res.status(500).json({ message: "Something went wrong" });
   }
-};
+}; 
 
 // SINGUP GOOGLE AUTH
 
@@ -328,13 +369,11 @@ const signUpFacebookAuth = async (req, res) => {
       };
 
       const token = generateToken(user, payLoad);
-      res
-        .status(201)
-        .json({
-          message: "User Created Successfully",
-          token: token,
-          user: user,
-        });
+      res.status(201).json({
+        message: "User Created Successfully",
+        token: token,
+        user: user,
+      });
     }
   } catch (error) {
     console.log(error);
@@ -390,7 +429,7 @@ const editVendor = async (req, res) => {
 const signupVendor = async (req, res) => {
   try {
     const { username, email, password, phone } = req.body;
-     console.log(req.body, "req.body");
+    console.log(req.body, "req.body");
     if (!username || !email || !password) {
       return res.status(400).json({ message: "Please enter all fields" });
     }
@@ -578,19 +617,26 @@ const loginUser = async (req, res) => {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      const hotel = await Hotel.findOne({vendor_id: findvendor._id});
+      const hotel = await Hotel.findOne({ vendor_id: findvendor._id });
 
-      if ( !hotel ) {
+      if (!hotel) {
         return res.status(400).json({ message: "User not registered" });
       }
 
-      if (findvendor.otpVerify === false || hotel.isVerified === false ) {
+      if (findvendor.otpVerify === false || hotel.isVerified === false) {
         return res.status(400).json({ message: "User not registered" });
       }
 
       const token = generateToken(findvendor);
 
-      res.status(201).json({ token, role: 'vendor', id: findvendor._id, hotel_id: hotel._id });
+      res
+        .status(201)
+        .json({
+          token,
+          role: "vendor",
+          id: findvendor._id,
+          hotel_id: hotel._id,
+        });
     } else if (role === "vendor-admin") {
       // console.log(req.body, "req.body");
 
@@ -616,22 +662,18 @@ const loginUser = async (req, res) => {
         const token = generateToken(findvendor);
         // Send the token in the response
         console.log("hotel not registered");
-        res
-          .status(201)
-          .json({
-            token,
-            registration: false,
-            message: "Hotel not registered",
-          });
+        res.status(201).json({
+          token,
+          registration: false,
+          message: "Hotel not registered",
+        });
       } else {
         const token = generateToken(findvendor);
-        res
-          .status(201)
-          .json({
-            registration: true,
-            message: "Hotel already registered",
-            token: token,
-          });
+        res.status(201).json({
+          registration: true,
+          message: "Hotel already registered",
+          token: token,
+        });
       }
     } else if (role === "admin") {
       const findadmin = await admin.findOne({ email });
@@ -735,13 +777,11 @@ const SignupViaPhone = async (req, res) => {
         otpVerify: false,
       });
 
-      res
-        .status(200)
-        .json({
-          message: "OTP sent successfully",
-          role: "user",
-          success: true,
-        });
+      res.status(200).json({
+        message: "OTP sent successfully",
+        role: "user",
+        success: true,
+      });
     } else {
       res.status(500).json({ message: sendOtpResult.message });
     }
