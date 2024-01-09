@@ -45,17 +45,15 @@ exports.getAllHotels = async (req, res) => {
 const Booking = require("../model/bookingSchema");
 
 exports.filterHotels = async (req, res) => {
-  const { checkOut, location } = req.body;
+  const { checkIn, checkOut, location } = req.body;
 
   const sanitizedLocation = location.trim();
 
-  const checkIn = moment(req.body.checkIn, "M/D/YYYY, h:mm:ss A").toDate();
-
-  // console.log(checkIn, checkOut, 'ffffff');
+  console.log(checkIn, checkOut, 'ffffff');
 
   try {
     const hotels = await Hotel.find({
-      country: { $regex: new RegExp(`^${sanitizedLocation}$`, "i") },
+      city: { $regex: new RegExp(`^${sanitizedLocation}$`, "i") },
     });
 
     if (!hotels || hotels.length === 0) {
