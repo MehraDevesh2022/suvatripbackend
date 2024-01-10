@@ -1,4 +1,5 @@
 const Review = require("../model/reviewSchema");
+const Booking = require("../model/bookingSchema");
 const multerConfigs = require("../middleWare/multerConfig");
 exports.getAllReviews = async (req, res) => {
   try {
@@ -86,9 +87,22 @@ exports.getAllReviews = async (req, res) => {
 
 
 
+
+
 exports.createReview = async (req, res) => {
   try {
     console.log("Request Files:", req.body);
+
+// check if user has a booking for the hotel
+    const booking = await Booking.findOne({ hotel_id: req.body.hotel_id, user_id: req.body.user_id });
+    if (!booking) {
+      return res.status(201).json({
+        success: false,
+        message: 'You have not booked this hotel',
+      });
+    }
+
+  console.log("Booking:", booking);
 
     // Commented out image handling code
     // const uploadPictures = multerConfigs.uploadPicture;
@@ -133,6 +147,7 @@ exports.createReview = async (req, res) => {
     });
     // });
   } catch (err) {
+    console.log("Error:", err);
     res.status(400).json({
       status: false,
       message: err.message,
@@ -214,3 +229,4 @@ exports.deleteReview = async (req, res) => {
     });
   }
 };
+

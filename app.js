@@ -15,6 +15,7 @@ const hotelRouter = require("./routes/hotelRoute");
 const dashboardRouter = require("./routes/dashboardRoutes");
 const roomRouter = require("./routes/roomRoute");
 const inboxRoute = require("./routes/inboxRoute");
+const ticketRoutes = require("./routes/ticketRoute");
 require("dotenv").config({ path: ".env"});
 
 const  config  = require("./config/config");
@@ -48,7 +49,7 @@ app.get("/", (req, res) => {
 // routes
 // app.use("/auth", authRouter); // Make sure to use the correct path here
 // routes
-app.use("/auth", authRouter); // Make sure to use the correct path here
+app.use("/auth", authRouter); 
 app.use("/review", reviewRouter); 
 app.use("/invoice", invoiceRoute);
 app.use("/promotion", promotionRoute);  
@@ -57,7 +58,7 @@ app.use("/hotel", hotelRouter); // Adding the hotelRouter route
 app.use("/room", roomRouter);
 app.use("/reservation", bookingRoute);
 app.use("/inbox", inboxRoute);
-
+app.use('/tickets', ticketRoutes);
 app.use("/dashboard", dashboardRouter);
 
 connectDB();

@@ -6,7 +6,7 @@ const reviewSchema = new mongoose.Schema({
     type: String,
     default: uuidv4,
     unique: true,
-    required: true
+     required: true
   },
   hotel_id: {
     type: mongoose.Schema.Types.ObjectId,
@@ -19,23 +19,23 @@ const reviewSchema = new mongoose.Schema({
     required: true
   },
   staff_rating: {
-    type: Number, // Changed to Number
+    type: Number,  
     required: true
   },
   facilities_rating: {
-    type: Number, // Changed to Number
+    type: Number,
     required: true
   },
   cleanliness_rating: {
-    type: Number, // Changed to Number
+    type: Number, 
     required: true
   },
   comfort_rating: {
-    type: Number, // Changed to Number
+    type: Number, 
     required: true
   },
   money_rating: {
-    type: Number, // Changed to Number
+    type: Number, 
     required: true
   },
   location_rating: {
