@@ -1,8 +1,8 @@
 const Review = require("../model/reviewSchema");
-
+const multerConfigs = require("../middleWare/multerConfig");
 exports.getAllReviews = async (req, res) => {
   try {
-    let filter = {};
+    let filter = {}; 
 
     if (req.query.filter) {
       const filterType = req.query.filter;
@@ -88,25 +88,54 @@ exports.getAllReviews = async (req, res) => {
 
 exports.createReview = async (req, res) => {
   try {
-    const allowedFields = ['hotel_id', 'user_id', 'rating', 'review'];
+    console.log("Request Files:", req.body);
+
+    // Commented out image handling code
+    // const uploadPictures = multerConfigs.uploadPicture;
+    // uploadPictures(req, res, async function (err) {
+    //   if (err) {
+    //     return res.status(400).json({
+    //       status: false,
+    //       message: 'Error uploading files.',
+    //     });
+    //   }
+
+    //   const imageLinks = req.files.map(file => ({
+    //     link: `${process.env.HOST}:${process.env.PORT}/uploads/reviewPictures/${file.filename}`,
+    //   }));
+
+    //   newReviewData.images = imageLinks;
+
+    const allowedFields = ['hotel_id', 'user_id', 'staff_rating', 'facilities_rating', 'cleanliness_rating', 'comfort_rating', 'money_rating', 'location_rating', 'wifi_rating', 'review'];
 
     const newReviewData = {};
-    Object.keys(req.body).forEach(key => {
-      if (allowedFields.includes(key)) {
+
+  
+    allowedFields.forEach(key => {
+      // for converting rating fields to numbers
+      if (key.endsWith('_rating')) {
+        newReviewData[key] = parseInt(req.body[key], 10);
+        console.log("New Review Data:", key, newReviewData[key]);
+      } else {
         newReviewData[key] = req.body[key];
       }
     });
 
+
+    // Create review without images
     const newReview = await Review.create(newReviewData);
+    console.log("New Review:", newReview);
+
     res.status(201).json({
       status: true,
       message: 'Review created successfully',
-      data: newReview
+      data: newReview,
     });
+    // });
   } catch (err) {
     res.status(400).json({
       status: false,
-      message: err.message
+      message: err.message,
     });
   }
 };

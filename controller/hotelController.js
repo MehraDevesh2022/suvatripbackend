@@ -1,12 +1,13 @@
 // controllers/hotelController.js
 const Hotel = require("../model/hotelSchema");
 const multerConfigs = require("../middleWare/multerConfig");
+
 const nodemailer = require("nodemailer");
 const Room = require("../model/roomSchema");
 const moment = require("moment");
 
 // Create a SMTP transporter
-const transporter = nodemailer.createTransport({
+const transporter = nodemailer.createTransport({ 
   host: "smtp-relay.brevo.com",
   port: "587",
   auth: {

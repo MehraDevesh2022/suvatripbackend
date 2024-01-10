@@ -8,16 +8,53 @@ const reviewSchema = new mongoose.Schema({
     unique: true,
     required: true
   },
-  hotel_id:  { type: mongoose.Schema.Types.ObjectId, ref: "Hotel" },
-  user_id:  { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  rating: {
-    type: Number,
-    required: true,
+  hotel_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Hotel",
+    required: true
+  },
+  user_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true
+  },
+  staff_rating: {
+    type: Number, // Changed to Number
+    required: true
+  },
+  facilities_rating: {
+    type: Number, // Changed to Number
+    required: true
+  },
+  cleanliness_rating: {
+    type: Number, // Changed to Number
+    required: true
+  },
+  comfort_rating: {
+    type: Number, // Changed to Number
+    required: true
+  },
+  money_rating: {
+    type: Number, // Changed to Number
+    required: true
+  },
+  location_rating: {
+    type: Number, // Changed to Number
+    required: true
+  },
+  wifi_rating: {
+    type: Number, // Changed to Number
+    required: true
   },
   review: {
     type: String,
-    required: true,
+    required: true
   },
+  images: [
+    {
+      type: String // image url
+    }
+  ],
   created_at: {
     type: Date,
     default: () => {
@@ -26,7 +63,6 @@ const reviewSchema = new mongoose.Schema({
       return twoMonthsAgo;
     },
   },
-
 });
 
 const Review = mongoose.model("Review", reviewSchema);

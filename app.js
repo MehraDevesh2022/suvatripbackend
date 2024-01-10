@@ -1,11 +1,11 @@
 const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser");
+// const cookieParser = require("cookie-parser");
 const connectDB = require("./db/db");
 const authRouter = require("./routes/authRoute");
 const path = require("path")
-
+const fileUpload = require("express-fileupload");
 const reviewRouter = require("./routes/reviewRoute");
 const invoiceRoute = require("./routes/invoiceRoute");
 const promotionRoute = require("./routes/promotionRoute");
@@ -20,13 +20,14 @@ require("dotenv").config({ path: ".env"});
 const  config  = require("./config/config");
 var cors = require('cors')
 
+// app.use(cookieParser());
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
+app.use(fileUpload());
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 app.use(cors());
 
-// app.use(cookieParser());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
 
 app.use(function (req, res, next) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -50,7 +51,7 @@ app.get("/", (req, res) => {
 app.use("/auth", authRouter); // Make sure to use the correct path here
 app.use("/review", reviewRouter); 
 app.use("/invoice", invoiceRoute);
-app.use("/promotion", promotionRoute);
+app.use("/promotion", promotionRoute);  
 app.use("/rateplan", ratePlanRoute);
 app.use("/hotel", hotelRouter); // Adding the hotelRouter route
 app.use("/room", roomRouter);
