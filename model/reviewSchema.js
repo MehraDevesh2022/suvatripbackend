@@ -6,7 +6,7 @@ const reviewSchema = new mongoose.Schema({
     type: String,
     default: uuidv4,
     unique: true,
-     required: true
+     required: true 
   },
   hotel_id: {
     type: mongoose.Schema.Types.ObjectId,
@@ -16,6 +16,13 @@ const reviewSchema = new mongoose.Schema({
   user_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
+    required: true
+},
+ 
+  // add booking ref
+  booking_id: { 
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Booking",
     required: true
   },
   staff_rating: {
@@ -46,6 +53,10 @@ const reviewSchema = new mongoose.Schema({
     type: Number, // Changed to Number
     required: true
   },
+  highlight: {
+    type: String,
+    required: true
+  },
   review: {
     type: String,
     required: true
@@ -55,13 +66,13 @@ const reviewSchema = new mongoose.Schema({
       type: String // image url
     }
   ],
+
+  username : {
+    type: String, 
+    required: true
+  },
   created_at: {
     type: Date,
-    default: () => {
-      const twoMonthsAgo = new Date();
-      twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
-      return twoMonthsAgo;
-    },
   },
 });
 

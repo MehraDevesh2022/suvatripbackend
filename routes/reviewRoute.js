@@ -13,7 +13,7 @@ router.get("/:id", reviewController.getAllReviews);
 // router.get("/reviews/:id", authenticateToken, reviewController.getReviewById);
 
 // Update a review by review_id
-router.patch("/reviews/:id", authenticateToken, reviewController.updateReview);
+router.post("/reviews/:id", authenticateToken, reviewController.updateReview);
 
 // Delete a review by review_id
 router.delete("/reviews/:id", authenticateToken, reviewController.deleteReview);
