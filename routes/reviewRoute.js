@@ -13,9 +13,9 @@ router.get("/:id", reviewController.getAllReviews);
 // router.get("/reviews/:id", authenticateToken, reviewController.getReviewById);
 
 // Update a review by review_id
-router.post("/reviews/:id", authenticateToken, reviewController.updateReview);
+router.post("/reviews/:id", reviewController.updateReview);
 
 // Delete a review by review_id
-router.delete("/reviews/:id", authenticateToken, reviewController.deleteReview);
+router.delete("/delete/:id", authenticateToken, reviewController.deleteReview);
 
 module.exports = router;
