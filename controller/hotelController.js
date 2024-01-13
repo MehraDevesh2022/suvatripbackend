@@ -53,9 +53,16 @@ exports.filterHotels = async (req, res) => {
   console.log(checkIn, checkOut, 'ffffff');
 
   try {
-    const hotels = await Hotel.find({
-      city: { $regex: new RegExp(`^${sanitizedLocation}$`, "i") },
-    });
+    let hotels;
+
+    console.log(sanitizedLocation.toLowerCase());
+    if (sanitizedLocation.toLowerCase() === "all") {
+      hotels = await Hotel.find();
+    } else {
+      hotels = await Hotel.find({
+        city: { $regex: new RegExp(`^${sanitizedLocation}$`, "i") },
+      });
+    }
 
     if (!hotels || hotels.length === 0) {
       return res.status(404).json({ error: "Hotels not found!" });
@@ -106,7 +113,7 @@ exports.filterHotels = async (req, res) => {
 
     const sumOfRooms = rooms.reduce((total, room) => total + room.noOfRooms, 0);
 
-    // console.log(parseInt(sumOfBooking), parseInt(sumOfRooms), 'pppp');
+    let filteredHotels;
 
     if (parseInt(sumOfBooking) >= parseInt(sumOfRooms)) {
       const hotelIdsWithBookings = bookingsWithinRange.map((booking) =>
@@ -117,7 +124,7 @@ exports.filterHotels = async (req, res) => {
         (hotel) => !hotelIdsWithBookings.includes(hotel._id.toString())
       );
     } else {
-      filterHotels = hotels;
+      filteredHotels = hotels;
     }
 
     if (req.isHotelAccess) {
@@ -146,39 +153,13 @@ exports.createHotel = async (req, res) => {
 
   uploadPicture(req, res, async function (err) {
     if (err) {
-      // console.log(err);
+      console.log(err);
       return res.status(400).send("Error uploading files.");
     }
 
-    let facilities = {
-      accommodation: JSON.parse(req.body.facility).accommodation
-        ? JSON.parse(req.body.facility).accommodation
-        : [],
-      recreation: JSON.parse(req.body.facility).recreation
-        ? JSON.parse(req.body.facility).recreation
-        : [],
-      connectivity: JSON.parse(req.body.facility).connectivity
-        ? JSON.parse(req.body.facility).connectivity
-        : [],
-    };
+    let facilities = JSON.parse(req.body.facilities) ? JSON.parse(req.body.facilities) : [];
 
-    let ammenities = {};
-
-    if (req.body.ammenities) {
-      ammenities = {
-        bathroom: JSON.parse(req.body.ammenities).bathroom
-          ? JSON.parse(req.body.ammenities).bathroom
-          : [],
-        inRoom: JSON.parse(req.body.ammenities).inRoom
-          ? JSON.parse(req.body.ammenities).inRoom
-          : [],
-      };
-    } else {
-      ammenities = {
-        bathroom: [],
-        inRoom: [],
-      };
-    }
+    let ammenities = JSON.parse(req.body.ammenities) ? JSON.parse(req.body.ammenities) : [];
 
     let data = {
       contactNo: JSON.parse(req.body.contactDetails).contactNo,
@@ -198,6 +179,7 @@ exports.createHotel = async (req, res) => {
       state: req.body.state,
       rating: JSON.parse(req.body.basicDetails).starRating,
       zipCode: req.body.zipCode,
+      rooms: JSON.parse(req.body.rooms)
     };
 
     const pictureLinks = req.files["picture"]?.map((file, index) => ({
