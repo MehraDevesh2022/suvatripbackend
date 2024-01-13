@@ -52,10 +52,6 @@ exports.getAllReviews = async (req, res) => {
       });
     }
 
-
-  
-
-
     const totalReviews = reviews.length;
     const ratingCounts = {
       oneStar: 0,
@@ -110,18 +106,14 @@ exports.getAllReviews = async (req, res) => {
           break;
       }
 
-  // Sum up ratings for average calculation
-sumStaffRating += review.staff_rating;
-sumFacilitiesRating += review.facilities_rating;
-sumCleanlinessRating += review.cleanliness_rating;
-sumComfortRating += review.comfort_rating;
-sumMoneyRating += review.money_rating;
-sumLocationRating += review.location_rating;
-sumWifiRating += review.wifi_rating;
-
-
-
-
+      // Sum up ratings for average calculation
+      sumStaffRating += review.staff_rating;
+      sumFacilitiesRating += review.facilities_rating;
+      sumCleanlinessRating += review.cleanliness_rating;
+      sumComfortRating += review.comfort_rating;
+      sumMoneyRating += review.money_rating;
+      sumLocationRating += review.location_rating;
+      sumWifiRating += review.wifi_rating;
     }
 
     // Calculate average ratings
@@ -299,11 +291,9 @@ exports.getReviewById = async (req, res) => {
 };
 
 exports.updateReview = async (req, res) => {
- console.log("Request Files:", req.body);
-
   try {
     const review = await Review.findById(req.params.id);
-
+    console.log("Review:");
     if (!review) {
       return res.status(404).json({
         status: false,
@@ -326,8 +316,7 @@ exports.updateReview = async (req, res) => {
     ];
 
     allowedFields.forEach((key) => {
-      if (req.body[key] !== undefined) {
-      
+      if (key in req.body) {
         if (key.endsWith("_rating")) {
           review[key] = parseInt(req.body[key], 10);
         } else {
@@ -341,7 +330,9 @@ exports.updateReview = async (req, res) => {
     res.json({
       status: true,
       message: "Review updated successfully",
-      data: updatedReview,
+      data: {
+        updatedReview,
+      },
     });
   } catch (err) {
     res.status(400).json({
@@ -350,8 +341,6 @@ exports.updateReview = async (req, res) => {
     });
   }
 };
-
-
 
 exports.deleteReview = async (req, res) => {
   try {
