@@ -2,6 +2,9 @@
 const Hotel = require('../model/hotelSchema');
 const Facility = require('../model/hotelFacilities');
 const Ammenity = require('../model/roomAmmenities');
+const Booking = require("../model/bookingSchema");
+const Room = require("../model/roomSchema");
+const User = require("../model/userSchema");
 const nodemailer = require('nodemailer');
 
 // Create a SMTP transporter
@@ -13,6 +16,24 @@ const transporter = nodemailer.createTransport({
     pass: 'aHSmbLgWfVqr54Uy'
   }
 });
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find();
+
+    if (!users) {
+      return res.status(404).json({ error: "Users not found!" });
+    }
+
+    return res.json({
+      status: true,
+      message: "User data fetched successfully",
+      data: users,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
 exports.getHotelById = async (req, res) => {
   try {
@@ -329,5 +350,41 @@ exports.deleteAmmenities = async (req, res) => {
     });
   } catch (error) {
     res.status(500).send(error);
+  }
+};
+
+exports.getAllBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find()
+      .select('checkIn checkOut')
+      .populate({
+        path: 'hotel_id',
+        model: Hotel, 
+        select: 'propertyPicture propertyName country currency' 
+      })
+      .populate({
+        path: 'room_id',
+        model: Room, 
+        select: 'weekdayPrice'
+      });
+      console.log(bookings, 'bookings');
+
+    if (!bookings || bookings.length === 0) {
+      return res.status(404).json({
+        status: false,
+        message: 'Bookings not found',
+      });
+    }
+
+    res.json({
+      status: true,
+      message: 'All bookings retrieved successfully',
+      data: bookings,
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: false,
+      message: err.message,
+    });
   }
 };

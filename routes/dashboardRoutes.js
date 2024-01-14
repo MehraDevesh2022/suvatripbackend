@@ -3,7 +3,11 @@ const router = express.Router();
 const dashboardController = require("../controller/dashboardController");
 const authenticateToken = require("../middleWare/auth");
 
+router.get("/bookings", authenticateToken, dashboardController.getAllBookings);
+
 router.get("/get-hotels", authenticateToken, dashboardController.getAllHotels);
+
+router.get("/users", authenticateToken, dashboardController.getAllUsers);
 
 router.get("/get-hotel-by-id", authenticateToken, dashboardController.getHotelById);
 
