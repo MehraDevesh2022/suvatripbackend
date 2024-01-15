@@ -3,7 +3,7 @@ const User = require("../model/userSchema");
 const admin = require("../model/adminSchema");
 const vendor = require("../model/vendorSchema");
 const bcrypt = require("bcryptjs");
-const config = require("../config/config"); 
+const config = require("../config/config");
 const axios = require("axios");
 const GoogleAuth = require("../model/googleAuthSchema");
 const FacebookAuth = require("../model/facebookAuth.js");
@@ -25,11 +25,9 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-///SIGN UP USER 
+///SIGN UP USER
 const signupUser = async (req, res) => {
   try {
-    console.log("trying signup");
-    console.log(req.body, "req.body")
     const { username, email, password, phoneNumber } = req.body;
 
     if (!username || !email || !password) {
@@ -37,19 +35,18 @@ const signupUser = async (req, res) => {
     }
 
     // Check for existing user by email
-    const existingUser = await User.findOne({ $or: [{ email }, { phoneNumber }] });
+    const existingUser = await User.findOne({
+      $or: [{ email }, { phoneNumber }],
+    });
 
-  
     if (existingUser) {
-     
-      
       return res.status(400).json({ message: "User already exists" });
     }
 
     // If email is unique, proceed with user creation
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    let otp = generateOTP(); 
+    let otp = generateOTP();
     let phoneOtp = generateOTP();
 
     const user = await User.create({
@@ -60,6 +57,7 @@ const signupUser = async (req, res) => {
       role: "user",
       otp: otp,
       phoneOtp: phoneOtp,
+      authType: "local", // 1586351322169040
       phoneOtpVerify: false,
       otpVerify: false,
     });
@@ -111,8 +109,7 @@ const signupUser = async (req, res) => {
         res.status(500).json({ message: sendOtpResult.message });
       }
     } else {
-
-       console.log("twilio otp")
+      console.log("twilio otp");
       client.messages
         .create({
           from: "whatsapp:+14155238886",
@@ -120,26 +117,23 @@ const signupUser = async (req, res) => {
           to: `whatsapp:${numericPhoneNumber}`,
         })
         .then((message) => {
-        console.log(message, "message.sid")
-        res.status(201).json({
-          token,
-          message: "User created successfully",
-          success: true,
+          console.log(message, "message.sid");
+          res.status(201).json({
+            token,
+            message: "User created successfully",
+            success: true,
+          });
+        });
 
-        })})
+      // for via sms
 
-
-// for via sms
- 
-// client.messages
-//     .create({
-//         body: 'hi',
-//         from: '+12068662692',
-//         to: '+918171280446'
-//     })
-//     .then(message => console.log(message.sid))
-
-         
+      // client.messages
+      //     .create({
+      //         body: 'hi',
+      //         from: '+12068662692',
+      //         to: '+918171280446'
+      //     })
+      //     .then(message => console.log(message.sid))
     }
   } catch (error) {
     // Check if the error is due to duplicate key violation
@@ -216,7 +210,7 @@ const userPhoneOtp = async (req, res) => {
         .status(400)
         .json({ message: "Please provide phone number and OTP" });
     }
-   
+
     const numericPhoneNumber = phoneNumber.replace(/\D/g, "");
 
     const user = await User.findOne({ phoneNumber: numericPhoneNumber });
@@ -248,63 +242,184 @@ const userPhoneOtp = async (req, res) => {
     console.error("Error verifying OTP:", error);
     res.status(500).json({ message: "Something went wrong" });
   }
-}; 
+};
+
+// isUser exist
+const isUserExist = async (req, res) => {
+  try {
+    const { email, facebook_ID, authType, username } = req.body;
+
+    console.log(req.body, "req.body");
+    if (authType === "facebook") {
+      if (!facebook_ID || !username) {
+        return res.status(400).json({ message: "Please enter all fields" });
+      }
+      const existingUser = await User.findOne({
+        facebookId: facebook_ID,
+      });
+
+      console.log(existingUser, "existingUser");
+
+      // Add a console log to check phoneOtpVerify value
+      console.log(
+        existingUser ? existingUser.phoneOtpVerify : null,
+        "phoneOtpVerify"
+      );
+
+      // If user exists and phone OTP is verified, generate token and log in
+      if (existingUser && existingUser.phoneOtpVerify) {
+        const payLoad = {
+          id: existingUser._id,
+          name: existingUser.username,
+          email: existingUser.email,
+          facebookId: existingUser.facebookId,
+        };
+        const token = generateToken(existingUser, payLoad);
+        return res.status(200).json({
+          message: "User logged in Successfully",
+          token,
+          user: existingUser,
+          success: true,
+        });
+      } else {
+        return res
+          .status(201)
+          .json({ message: "User not found", success: false });
+      }
+    } else if (authType === "google") {
+      if (!email) {
+        return res.status(400).json({ message: "Please enter all fields" });
+      }
+
+      const existingUser = await User.findOne({
+        $or: [{ email }],
+      });
+
+      if (existingUser && existingUser.phoneOtpVerify) {
+        const payLoad = {
+          id: existingUser._id,
+          name: existingUser.username,
+          email: existingUser.email,
+          authType: "google",
+        };
+        const token = generateToken(existingUser, payLoad);
+
+        return res.status(200).json({
+          message: "User logged in Successfully",
+          token,
+          user: existingUser,
+          success: true,
+        });
+      } else {
+        return res
+          .status(201)
+          .json({ message: "User not found", success: false });
+      }
+    } else {
+      return res.status(201).json({ message: "User not found" });
+    }
+  } catch (error) {
+    console.error("Error during login:", error);
+
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
 
 // SINGUP GOOGLE AUTH
 
 const signupGoogle = async (req, res) => {
   try {
-    const accessToken = req.body.googleAccessToken;
-    console.log("accessToken", accessToken);
+    const { username, email, password, phoneNumber } = req.body;
 
-    const response = await axios.get(
-      "https://www.googleapis.com/oauth2/v3/userinfo",
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
+    if (!username || !email || !password || !phoneNumber) {
+      return res.status(400).json({ message: "Please enter all fields" });
+    }
 
-    // Extract relevant information from the response with default values as empty strings
-    const firstName = response.data.given_name || "";
-    const lastName = response.data.family_name || "";
-    const email = response.data.email || "";
-    const isUserExist = await GoogleAuth.findOne({ email });
-    if (isUserExist) {
-      const user = {
-        _id: isUserExist._id,
-        email: email,
-        username: lastName ? `${firstName} ${lastName}` : firstName,
+    // Check for existing user by email
+    const isUser = await User.findOne({ email });
+    if (isUser && isUser.phoneOtpVerify) {
+      const payLoad = {
+        id: isUser._id,
+        name: isUser?.username,
+        email: isUser?.email,
+        authType: "google",
       };
 
+      const token = generateToken(isUser, payLoad);
+      return res.status(200).json({
+        message: "User logged in Successfully",
+        token,
+        user: isUser,
+        isLogged: true,
+      });
+    } else {
+      // If email is unique, proceed with user creation
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      let otp = generateOTP();
+      let phoneOtp = generateOTP();
+
+      const user = await User.create({
+        username: username,
+        password: hashedPassword,
+        email,
+        phoneNumber: phoneNumber,
+        role: "user",
+        otp: otp,
+        phoneOtp: phoneOtp,
+        authType: "google",
+        phoneOtpVerify: false,
+        otpVerify: true,
+      });
+
       const payLoad = {
+        id: user._id,
         name: user?.username,
         email: user?.email,
         authType: "google",
       };
 
       const token = generateToken(user, payLoad);
-      return res
-        .status(200)
-        .json({ message: "User already exists", token: token, user: user });
+
+      const numericPhoneNumber = phoneNumber.replace(/\D/g, "");
+
+      //check if country code is from nepal then send otp via sociair else send otp via twilio
+      if (phoneNumber.startsWith("977")) {
+        const sendOtpResult = await sendOtpViaSociair(
+          numericPhoneNumber,
+          phoneOtp
+        );
+
+        if (sendOtpResult.success) {
+          res.status(201).json({
+            token,
+            message: "User created successfully",
+            success: true,
+            isLogged: false,
+          });
+        } else {
+          console.log(sendOtpResult.message);
+
+          res.status(500).json({ message: sendOtpResult.message });
+        }
+      } else {
+        console.log("twilio otp");
+        client.messages
+          .create({
+            from: "whatsapp:+14155238886",
+            body: `Your SuvaTrip Account OTP is ${phoneOtp}`,
+            to: `whatsapp:${numericPhoneNumber}`,
+          })
+          .then((message) => {
+            console.log(message, "message.sid");
+            res.status(201).json({
+              token,
+              message: "User created successfully",
+              isLogged: false,
+            });
+          });
+      }
     }
-
-    const user = await GoogleAuth.create({
-      username: lastName ? `${firstName} ${lastName}` : firstName,
-      email,
-    });
-
-    const payLoad = {
-      name: user?.username,
-      email: user?.email,
-      authType: "google",
-    };
-
-    const token = generateToken(user, payLoad);
-    res
-      .status(201)
-      .json({ message: "User Created Successfully", token: token, user: user });
   } catch (error) {
     console.error("Error during Google signup:", error);
 
@@ -323,71 +438,180 @@ const signupGoogle = async (req, res) => {
 };
 
 // singup facebook auth
+
+// const signUpFacebookAuth = async (req, res) => {
+//   try {
+//     console.log("trying signup with facebook");
+//     const { userId, accessToken } = req.body;
+
+//     if (!userId || userId == "" || !accessToken || accessToken == "") {
+//       return res
+//         .status(400)
+//         .json({ message: "userId and accessToken are required" });
+//     }
+
+//     const { data } = await getUserByFacebookIdAndAccessToken(
+//       accessToken,
+//       userId
+//     );
+
+//     let user = await FacebookAuth.findOne({ facebookId: data.id });
+
+//     if (user) {
+//       const userData = { email: data.email, username: data.name, _id: data.id };
+//       const payLoad = {
+//         name: user?.username,
+//         email: user?.email,
+//         facebookId: user?.facebookId,
+//         authType: "facebook",
+//       };
+
+//       const token = generateToken(userData, payLoad);
+//       return res
+//         .status(200)
+//         .json({ message: "User already exists", token, user: userData });
+//     } else {
+//       user = await FacebookAuth.create({
+//         username: data?.name,
+//         email: data?.email,
+//         facebookId: data.id,
+//       });
+
+//       const payLoad = {
+//         name: user?.username,
+//         email: user?.email,
+//         facebookId: user?.facebookId,
+//         authType: "facebook",
+//       };
+
+//       const token = generateToken(user, payLoad);
+//       res.status(201).json({
+//         message: "User Created Successfully",
+//         token: token,
+//         user: user,
+//       });
+//     }
+//   } catch (error) {
+//     console.log(error);
+//     return res.status(500).json({ message: error.message });
+//   }
+// };
+
+// async function getUserByFacebookIdAndAccessToken(accessToken, userId) {
+//   const urlGraphFacebook = `https://graph.facebook.com/v12.0/${userId}?fields=id,name,email&access_token=${accessToken}`;
+
+//   const result = await axios.get(urlGraphFacebook);
+//   console.log(result, "result");
+//   return result;
+// }
+
+// singup facebook auth
+
 const signUpFacebookAuth = async (req, res) => {
   try {
-    console.log("trying signup with facebook");
-    const { userId, accessToken } = req.body;
+    const { username, email, password, phoneNumber, facebookId } = req.body;
 
-    if (!userId || userId == "" || !accessToken || accessToken == "") {
-      return res
-        .status(400)
-        .json({ message: "userId and accessToken are required" });
+ console.log(req.body, "req.body from facebook");
+    if (!username || !email || !password || !facebookId || !phoneNumber) {
+      return res.status(400).json({ message: "Please enter all fields" });
     }
 
-    const { data } = await getUserByFacebookIdAndAccessToken(
-      accessToken,
-      userId
-    );
+    // Check for existing user by email and facebookId
+    const existingUser = await User.findOne({
+     facebookId : facebookId, 
+    });
 
-    let user = await FacebookAuth.findOne({ facebookId: data.id });
-
-    if (user) {
-      const userData = { email: data.email, username: data.name, _id: data.id };
+    // If user exists and phone OTP is verified, generate token and log in
+    if (existingUser && existingUser.phoneOtpVerify) {
       const payLoad = {
-        name: user?.username,
-        email: user?.email,
-        facebookId: user?.facebookId,
-        authType: "facebook",
+        id: existingUser._id,
+        name: existingUser.username,
+        email: existingUser.email,
+        facebookId: existingUser.facebookId,
       };
-
-      const token = generateToken(userData, payLoad);
-      return res
-        .status(200)
-        .json({ message: "User already exists", token, user: userData });
+      const token = generateToken(existingUser, payLoad);
+      return res.status(200).json({
+        message: "User logged in Successfully",
+        token,
+        user: existingUser,
+        success: true,
+      });
     } else {
-      user = await FacebookAuth.create({
-        username: data?.name,
-        email: data?.email,
-        facebookId: data.id,
+      // Create user
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const otp = generateOTP();
+      const phoneOtp = generateOTP();
+
+      const user = await User.create({
+        username,
+        password: hashedPassword,
+        email,
+        phoneNumber,
+        role: "user",
+        otp,
+        phoneOtp,
+        authType: "facebook",
+        phoneOtpVerify: false,
+        otpVerify: true,
+        facebookId,
       });
 
       const payLoad = {
-        name: user?.username,
-        email: user?.email,
-        facebookId: user?.facebookId,
-        authType: "facebook",
+        id: user._id,
+        name: user.username,
+        email: user.email,
+        facebookId: user.facebookId,
       };
-
       const token = generateToken(user, payLoad);
-      res.status(201).json({
-        message: "User Created Successfully",
-        token: token,
-        user: user,
-      });
+
+      // Send OTP via phone number
+      const numericPhoneNumber = phoneNumber.replace(/\D/g, "");
+      const sendOtpResult = await sendOtpViaSociair(
+        numericPhoneNumber,
+        phoneOtp
+      );
+
+      if (sendOtpResult.success) {
+        res.status(201).json({
+          token,
+          message: "User created successfully",
+          success: true,
+        });
+      } else {
+        // Send OTP via Twilio
+        client.messages
+          .create({
+            from: "whatsapp:+14155238886",
+            body: `Your SuvaTrip Account OTP is ${phoneOtp}`,
+            to: `whatsapp:${numericPhoneNumber}`,
+          })
+          .then((message) => {
+            console.log(message.sid);
+            res.status(201).json({
+              token,
+              message: "User created successfully",
+              success: true,
+            });
+          })
+          .catch((error) => {
+            console.error("Error sending Twilio OTP:", error);
+            res
+              .status(500)
+              .json({ success: false, message: "Error sending OTP" });
+          });
+      }
     }
   } catch (error) {
-    console.log(error);
-    return res.status(500).json({ message: error.message });
+    // Check if the error is due to duplicate key violation
+    if (error.code === 11000) {
+      return res
+        .status(400)
+        .json({ message: "User with this email already exists" });
+    }
+    console.error("Error during Facebook signup:", error);
+    res.status(500).json({ success: false, message: "Something went wrong" });
   }
 };
-
-async function getUserByFacebookIdAndAccessToken(accessToken, userId) {
-  const urlGraphFacebook = `https://graph.facebook.com/v12.0/${userId}?fields=id,name,email&access_token=${accessToken}`;
-
-  const result = await axios.get(urlGraphFacebook);
-  console.log(result, "result");
-  return result;
-}
 
 const editVendor = async (req, res) => {
   try {
@@ -629,14 +853,12 @@ const loginUser = async (req, res) => {
 
       const token = generateToken(findvendor);
 
-      res
-        .status(201)
-        .json({
-          token,
-          role: "vendor",
-          id: findvendor._id,
-          hotel_id: hotel._id,
-        });
+      res.status(201).json({
+        token,
+        role: "vendor",
+        id: findvendor._id,
+        hotel_id: hotel._id,
+      });
     } else if (role === "vendor-admin") {
       // console.log(req.body, "req.body");
 
@@ -961,7 +1183,7 @@ const profile = async (req, res) => {
     } else if (authType === "google") {
       const { email } = req.user;
 
-      const user = await GoogleAuth.findOne({
+      const user = await User.findOne({
         email: { $regex: new RegExp(`^${email}$`, "i") },
       });
       if (!user) {
@@ -970,12 +1192,12 @@ const profile = async (req, res) => {
       res.status(200).json({
         message: "User found successfully",
         user: user,
-        authType: "google",
+        authType: "local",
         success: true,
       });
     } else if (authType === "facebook") {
       const { facebookId } = req.user;
-      const user = await FacebookAuth.findOne({ facebookId });
+      const user = await User.findOne({ facebookId });
       console.log(user, "user");
       if (!user) {
         return res.status(400).json({ message: "User not found" });
@@ -983,7 +1205,7 @@ const profile = async (req, res) => {
       res.status(200).json({
         message: "User found successfully",
         user: user,
-        authType: "facebook",
+        authType: "local",
         success: true,
       });
     }
@@ -1083,4 +1305,5 @@ module.exports = {
   vendorProfile,
   SignupViaPhone,
   userPhoneOtp,
+  isUserExist,
 };

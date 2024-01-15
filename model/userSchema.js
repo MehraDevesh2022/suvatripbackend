@@ -34,22 +34,31 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-
-//  isOtpExpired: {
-//     type: Date,
-//   },
-
-phoneOtpVerify: {
-    type: Boolean,  
+  phoneOtpVerify: {
+    type: Boolean,
     default: false,
     required: true
   },
-
   otpVerify: {
     type: Boolean,
     default: false,
     required: true
-  }
+  },
+  authType: {
+    type: String,
+    required: true,
+  },
+});
+
+// Add a conditional field based on authType
+userSchema.add({
+  facebookId: {
+    type: String,
+    unique: true,
+    required: function() {
+      return this.authType === 'facebook';
+    },
+  },
 });
 
 userSchema.methods.comparePassword = async function(candidatePassword) {
