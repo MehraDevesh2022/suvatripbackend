@@ -43,7 +43,7 @@ exports.getAllReviews = async (req, res) => {
         },
       });
 
-    console.log("Reviews:", reviews);
+
 
     if (reviews.length === 0) {
       return res.status(404).json({
@@ -51,6 +51,23 @@ exports.getAllReviews = async (req, res) => {
         message: "No reviews found for the specified hotel ID",
       });
     }
+
+
+    const getRatingDescription = (avgRating) => {
+      if (avgRating >= 9) {
+        return "Excellent";
+      } else if (avgRating >= 6) {
+        return "Very Good";
+      } else if (avgRating >= 4) {
+        return "Good";
+      } else if (avgRating > 0) {
+       
+        return "Poor Rating";
+      } else {
+       
+        return "No Rating";
+      }
+    };
 
     const totalReviews = reviews.length;
     const ratingCounts = {
@@ -155,6 +172,8 @@ exports.getAllReviews = async (req, res) => {
         avgWifiRating) /
       7;
 
+
+      const totalAvgRatingDescription = getRatingDescription(totalAvgRating);
     res.json({
       status: true,
       message: "Reviews retrieved successfully",
@@ -164,6 +183,7 @@ exports.getAllReviews = async (req, res) => {
         // ratingPercentages,
         averageRatings,
         totalAvgRating: totalAvgRating.toFixed(1),
+        totalAvgRatingDescription : totalAvgRatingDescription,
       },
     });
   } catch (err) {

@@ -511,14 +511,14 @@ const signUpFacebookAuth = async (req, res) => {
   try {
     const { username, email, password, phoneNumber, facebookId } = req.body;
 
- console.log(req.body, "req.body from facebook");
+    console.log(req.body, "req.body from facebook");
     if (!username || !email || !password || !facebookId || !phoneNumber) {
       return res.status(400).json({ message: "Please enter all fields" });
     }
 
     // Check for existing user by email and facebookId
     const existingUser = await User.findOne({
-     facebookId : facebookId, 
+      facebookId: facebookId,
     });
 
     // If user exists and phone OTP is verified, generate token and log in
@@ -1160,55 +1160,19 @@ const changePassword = async (req, res) => {
 // profile data
 const profile = async (req, res) => {
   try {
-    const { authType } = req.user;
-
-    if (!authType) {
-      return res.status(400).json({ message: "Please provide authType" });
+    const { email } = req.user;
+    const user = await User.findOne({
+      email: { $regex: new RegExp(`^${email}$`, "i") },
+    });
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
     }
-
-    if (authType === "local") {
-      const { email } = req.user;
-      const user = await User.findOne({
-        email: { $regex: new RegExp(`^${email}$`, "i") },
-      });
-      if (!user) {
-        return res.status(400).json({ message: "User not found" });
-      }
-      res.status(200).json({
-        message: "User found successfully",
-        user: user,
-        authType: "local",
-        success: true,
-      });
-    } else if (authType === "google") {
-      const { email } = req.user;
-
-      const user = await User.findOne({
-        email: { $regex: new RegExp(`^${email}$`, "i") },
-      });
-      if (!user) {
-        return res.status(400).json({ message: "User not found" });
-      }
-      res.status(200).json({
-        message: "User found successfully",
-        user: user,
-        authType: "local",
-        success: true,
-      });
-    } else if (authType === "facebook") {
-      const { facebookId } = req.user;
-      const user = await User.findOne({ facebookId });
-      console.log(user, "user");
-      if (!user) {
-        return res.status(400).json({ message: "User not found" });
-      }
-      res.status(200).json({
-        message: "User found successfully",
-        user: user,
-        authType: "local",
-        success: true,
-      });
-    }
+    res.status(200).json({
+      message: "User found successfully",
+      user: user,
+      authType: "local",
+      success: true,
+    });
   } catch (error) {
     console.error("Error during login:", error);
     res.status(500).json({ message: "Something went wrong" });
