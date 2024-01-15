@@ -5,9 +5,7 @@ const storage = multer.diskStorage({
   destination: function (req, file, cb) {
   
     let destination; 
-    if (file.fieldname.startsWith('reviewImage')) {
-      destination = 'public/uploads/reviewPictures/';
-    } else if (file.fieldname === 'picture') {
+    if (file.fieldname === 'picture') {
       destination = 'public/uploads/propertyPicture/';
     } else if (file.fieldname === 'roomPicture') {
       destination = 'public/uploads/roomPicture/';
@@ -30,8 +28,7 @@ const uploadPicture = multer({ storage }).fields([
   { name: 'roomPicture', maxCount: 5 },
   { name: 'areaPicture', maxCount: 5 },
   { name: 'taxFile', maxCount: 1 },
-  { name: 'propertyFile', maxCount: 1 },
-  { name: 'reviewImage', maxCount: 5 } 
+  { name: 'propertyFile', maxCount: 1 }
 ]);
 
 module.exports = {
