@@ -47,6 +47,7 @@ const Booking = require("../model/bookingSchema");
 
 exports.filterHotels = async (req, res) => {
   const { checkIn, checkOut, location } = req.body;
+console.log(req.body , "req.body")
 
   const sanitizedLocation = location.trim();
 

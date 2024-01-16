@@ -58,13 +58,18 @@ userSchema.add({
     required: function() {
       return this.authType === 'facebook';
     },
+    default: uuidv4, 
   },
 });
+
+
+
+
 
 userSchema.methods.comparePassword = async function(candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
-
+userSchema.index({ facebookId: 1 }, { unique: false });
 userSchema.index({ email: 1 }, { unique: true });
 const User = mongoose.model("User", userSchema);
 

@@ -5,13 +5,13 @@ const vendor = require("../model/vendorSchema");
 const bcrypt = require("bcryptjs");
 const config = require("../config/config");
 const axios = require("axios");
-const GoogleAuth = require("../model/googleAuthSchema");
-const FacebookAuth = require("../model/facebookAuth.js");
+// const GoogleAuth = require("../model/googleAuthSchema");
+// const FacebookAuth = require("../model/facebookAuth.js");
 const Hotel = require("../model/hotelSchema");
 const nodemailer = require("nodemailer");
 
 const { TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN } = require("../config/config");
-const authToken = process.env.TWILIO_AUTH_TOKEN;
+// const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = require("twilio")(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
 // const { SOCIAIR_API_KEY } = ;
 
@@ -29,7 +29,7 @@ const transporter = nodemailer.createTransport({
 const signupUser = async (req, res) => {
   try {
     const { username, email, password, phoneNumber } = req.body;
-
+    console.log(req.body, "req.body");
     if (!username || !email || !password) {
       return res.status(400).json({ message: "Please enter all fields" });
     }
@@ -39,6 +39,7 @@ const signupUser = async (req, res) => {
       $or: [{ email }, { phoneNumber }],
     });
 
+    console.log(existingUser, "existingUser");
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
@@ -57,7 +58,7 @@ const signupUser = async (req, res) => {
       role: "user",
       otp: otp,
       phoneOtp: phoneOtp,
-      authType: "local", // 1586351322169040
+      authType: "local",
       phoneOtpVerify: false,
       otpVerify: false,
     });
@@ -382,9 +383,12 @@ const signupGoogle = async (req, res) => {
       const token = generateToken(user, payLoad);
 
       const numericPhoneNumber = phoneNumber.replace(/\D/g, "");
+      console.log(numericPhoneNumber, "numericPhoneNumber");
+      console.log(phoneNumber, "phoneNumber");
 
       //check if country code is from nepal then send otp via sociair else send otp via twilio
-      if (phoneNumber.startsWith("977")) {
+      if (phoneNumber.startsWith("+977")) {
+        console.log(phoneNumber, "suvaTrip");
         const sendOtpResult = await sendOtpViaSociair(
           numericPhoneNumber,
           phoneOtp
@@ -403,7 +407,7 @@ const signupGoogle = async (req, res) => {
           res.status(500).json({ message: sendOtpResult.message });
         }
       } else {
-        console.log("twilio otp");
+        // console.log("twilio otp");
         client.messages
           .create({
             from: "whatsapp:+14155238886",
@@ -411,7 +415,7 @@ const signupGoogle = async (req, res) => {
             to: `whatsapp:${numericPhoneNumber}`,
           })
           .then((message) => {
-            console.log(message, "message.sid");
+            // console.log(message, "message.sid");
             res.status(201).json({
               token,
               message: "User created successfully",
@@ -808,14 +812,24 @@ const signupAdmin = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     console.log("Trying login user");
-    const { email, password, role } = req.body;
+    const { email, password, phoneNumber, role } = req.body;
+    console.log(req.body, "req.body");
+    if (!email && !phoneNumber || !password || !role ) {
+        
+      return res.status(400).json({ message: "Please enter valid credentials" });
 
-    if (!role || !email || !password) {
-      return res.status(400).json({ message: "Please enter all fields" });
     }
+    
 
     if (role === "user") {
-      const user = await User.findOne({ email });
+      let user;
+
+      if (email) {
+        user = await User.findOne({ email });
+        console.log(user, "user");
+      } else if (phoneNumber) {
+        user = await User.findOne({ phoneNumber });
+      }
 
       if (!user || !bcrypt.compareSync(password, user.password)) {
         return res.status(401).json({ message: "Invalid credentials" });
