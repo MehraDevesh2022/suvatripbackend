@@ -6,6 +6,7 @@ const authenticateToken = require("../middleWare/auth");
 
 router.post("/signup/user", authController.signupUser);
 router.post("/signup/google", authController.signupGoogle);
+router.post("/signup/isUser", authController.isUserExist);
 router.post("/signup/fb", authController.signUpFacebookAuth);
 router.post("/signup/vendor", authController.signupVendor);
 router.post("/vendor-edit", authenticateToken, authController.editVendor);

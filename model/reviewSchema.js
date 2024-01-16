@@ -73,7 +73,21 @@ const reviewSchema = new mongoose.Schema({
   },
   created_at: {
     type: Date,
+    default: Date.now,
   },
+});
+
+reviewSchema.pre('save', function (next) {
+  this.staff_rating *= 2;
+  this.facilities_rating *= 2;
+  this.cleanliness_rating *= 2;
+  this.comfort_rating *= 2;
+  this.money_rating *= 2;
+  this.location_rating *= 2;
+  this.wifi_rating *= 2;
+
+  
+  next();
 });
 
 const Review = mongoose.model("Review", reviewSchema);
