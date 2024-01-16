@@ -6,11 +6,11 @@ const storage = multer.diskStorage({
   
     let destination; 
     if (file.fieldname === 'picture') {
-      destination = 'public/uploads/propertyPicture/';
+      destination = 'public/uploads/propertyPicture';
     } else if (file.fieldname === 'roomPicture') {
-      destination = 'public/uploads/roomPicture/';
+      destination = 'public/uploads/roomPicture';
     } else if (file.fieldname === 'areaPicture') {
-      destination = 'public/uploads/areaPicture/';
+      destination = 'public/uploads/areaPicture';
     } else if (file.fieldname === 'taxFile') {
       destination = 'public/uploads/documents/tax';
     } else if (file.fieldname === 'propertyFile') {

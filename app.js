@@ -5,7 +5,7 @@ const bodyParser = require("body-parser");
 const connectDB = require("./db/db");
 const authRouter = require("./routes/authRoute");
 const path = require("path")
-const fileUpload = require("express-fileupload");
+// const fileUpload = require("express-fileupload");
 const reviewRouter = require("./routes/reviewRoute");
 const invoiceRoute = require("./routes/invoiceRoute");
 const promotionRoute = require("./routes/promotionRoute");
@@ -24,7 +24,7 @@ var cors = require('cors')
 // app.use(cookieParser());
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
-app.use(fileUpload());
+// app.use(fileUpload());
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 app.use(cors());

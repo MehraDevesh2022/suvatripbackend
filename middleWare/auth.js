@@ -2,7 +2,6 @@ const jwt = require("jsonwebtoken");
 const config = require("../config/config");
 
 const authenticateToken = (req, res, next) => {
-  // Get the token from the Authorization header
   console.log(req.headers, "req.headers");
 
   const authorizationHeader = req.headers.authorization;
@@ -14,7 +13,6 @@ const authenticateToken = (req, res, next) => {
     return;
   }
 
-  // Check if the user is logged in with a valid token
   if (authorizationHeader) {
     const token = authorizationHeader.split(" ")[1];
     //  console.log(token, "token");

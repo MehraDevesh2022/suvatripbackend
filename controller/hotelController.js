@@ -149,7 +149,7 @@ exports.filterHotels = async (req, res) => {
 
 exports.createHotel = async (req, res) => {
   const { uploadPicture } = multerConfigs;
-  // console.log(req.user, "req.body");
+  console.log(req.body, "req.body");
 
   uploadPicture(req, res, async function (err) {
     if (err) {
@@ -157,9 +157,13 @@ exports.createHotel = async (req, res) => {
       return res.status(400).send("Error uploading files.");
     }
 
-    let facilities = JSON.parse(req.body.facilities) ? JSON.parse(req.body.facilities) : [];
+    console.log(req.body);
 
-    let ammenities = JSON.parse(req.body.ammenities) ? JSON.parse(req.body.ammenities) : [];
+    let facilities = req.body.facility ? JSON.parse(req.body.facility) : [];
+
+    let ammenities = req.body.ammenities ? JSON.parse(req.body.ammenities) : [];
+
+    console.log('step1');
 
     let data = {
       contactNo: JSON.parse(req.body.contactDetails).contactNo,
@@ -181,6 +185,8 @@ exports.createHotel = async (req, res) => {
       zipCode: req.body.zipCode,
       rooms: JSON.parse(req.body.rooms)
     };
+
+    console.log('step2');
 
     const pictureLinks = req.files["picture"]?.map((file, index) => ({
       link: `${process.env.HOST}${
@@ -212,10 +218,12 @@ exports.createHotel = async (req, res) => {
       }/uploads/documents/property/${file.filename}`,
     }));
 
+    console.log('step3');
+
     try {
       const hotel = new Hotel({
         ...data,
-        roomsNo: JSON.parse(req.body.roomSetup).modalData.length,
+        roomsNo: JSON.parse(req.body.rooms).length,
         propertyPicture: pictureLinks,
         roomPicture: roomPictureLinks,
         areaPicture: areaPictureLinks,
@@ -225,8 +233,6 @@ exports.createHotel = async (req, res) => {
       });
 
       const newHotel = await hotel.save();
-
-      // console.log(req.user.email);
 
       const mailOptions = {
         from: "suvatrip1@gmail.com",
