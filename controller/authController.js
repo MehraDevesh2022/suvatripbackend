@@ -29,13 +29,14 @@ const transporter = nodemailer.createTransport({
 const signupUser = async (req, res) => {
   try {
     const { username, email, password, phoneNumber } = req.body;
-    console.log(req.body, "req.body");
-    if (!username || !email || !password) {
-      return res.status(400).json({ message: "Please enter all fields" });
+       console.log(!phoneNumber.length < 10)
+    if (!username || !email || !password || !phoneNumber.length < 10) {
+       
+      return res.status(400).json({ message: "Please enter all fields correctly" });
     }
 
     // Check for existing user by email
-    const existingUser = await User.findOne({
+    const existingUser = await User.findOne({ 
       $or: [{ email }, { phoneNumber }],
     });
 
@@ -124,17 +125,13 @@ const signupUser = async (req, res) => {
             message: "User created successfully",
             success: true,
           });
+        })
+        .catch((error) => {
+          console.error("Error sending Twilio OTP:", error);
+          res
+            .status(500)
+            .json({ success: false, message: "Error sending OTP" });
         });
-
-      // for via sms
-
-      // client.messages
-      //     .create({
-      //         body: 'hi',
-      //         from: '+12068662692',
-      //         to: '+918171280446'
-      //     })
-      //     .then(message => console.log(message.sid))
     }
   } catch (error) {
     // Check if the error is due to duplicate key violation
@@ -162,14 +159,14 @@ const userOtp = async (req, res) => {
     if (isReset == undefined) {
       isReset = false;
     }
-    console.log(req.body, "password reset user otp");
+    // console.log(req.body, "password reset user otp");
 
     if (!email || !otp) {
       return res.status(400).json({ message: "Please provide email and OTP" });
     }
 
     const existingVendor = await User.findOne({ email });
-    console.log(existingVendor, "existingVendor");
+    // console.log(existingVendor, "existingVendor");
 
     if (!existingVendor) {
       return res.status(404).json({ message: "Vendor not found" });
@@ -205,7 +202,7 @@ const userPhoneOtp = async (req, res) => {
   try {
     let { phoneNumber, otp } = req.body;
 
-    console.log(req.body, "password reset");
+    // console.log(req.body, "password reset");
     if (!phoneNumber || !otp) {
       return res
         .status(400)
@@ -215,7 +212,7 @@ const userPhoneOtp = async (req, res) => {
     const numericPhoneNumber = phoneNumber.replace(/\D/g, "");
 
     const user = await User.findOne({ phoneNumber: numericPhoneNumber });
-    console.log(user, "user phone otp");
+    // console.log(user, "user phone otp");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -250,7 +247,7 @@ const isUserExist = async (req, res) => {
   try {
     const { email, facebook_ID, authType, username } = req.body;
 
-    console.log(req.body, "req.body");
+    // console.log(req.body, "req.body");
     if (authType === "facebook") {
       if (!facebook_ID || !username) {
         return res.status(400).json({ message: "Please enter all fields" });
@@ -259,7 +256,7 @@ const isUserExist = async (req, res) => {
         facebookId: facebook_ID,
       });
 
-      console.log(existingUser, "existingUser");
+      // console.log(existingUser, "existingUser");
 
       // Add a console log to check phoneOtpVerify value
       console.log(
@@ -814,19 +811,17 @@ const loginUser = async (req, res) => {
     console.log("Trying login user");
     const { email, password, phoneNumber, role } = req.body;
     console.log(req.body, "req.body");
-    if (!email && !phoneNumber || !password || !role ) {
-        
-      return res.status(400).json({ message: "Please enter valid credentials" });
-
+    if ((!email && !phoneNumber) || !password || !role) {
+      return res
+        .status(400)
+        .json({ message: "Please enter valid credentials" });
     }
-    
 
     if (role === "user") {
       let user;
 
       if (email) {
         user = await User.findOne({ email });
-        console.log(user, "user");
       } else if (phoneNumber) {
         user = await User.findOne({ phoneNumber });
       }
@@ -874,13 +869,9 @@ const loginUser = async (req, res) => {
         hotel_id: hotel._id,
       });
     } else if (role === "vendor-admin") {
-      // console.log(req.body, "req.body");
-
       const findvendor = await vendor.findOne({ email });
 
       // { email: 'test@gmail.com', password: 'qwert', role: 'vendor-admin' } req.body
-
-      console.log(findvendor, "findvendor");
 
       if (!findvendor || !bcrypt.compareSync(password, findvendor.password)) {
         return res.status(401).json({ message: "Invalid credentials" });
@@ -897,7 +888,7 @@ const loginUser = async (req, res) => {
       if (!hotel) {
         const token = generateToken(findvendor);
         // Send the token in the response
-        console.log("hotel not registered");
+
         res.status(201).json({
           token,
           registration: false,
@@ -991,7 +982,7 @@ const SignupViaPhone = async (req, res) => {
     // Extract numeric part from the phone number
     const numericPhoneNumber = phoneNumber.replace(/\D/g, "");
 
-    console.log(typeof numericPhoneNumber, numericPhoneNumber);
+    // console.log(typeof numericPhoneNumber, numericPhoneNumber);
 
     const isUserExist = await User.findOne({ phoneNumber: numericPhoneNumber });
     if (isUserExist) {
@@ -1060,7 +1051,7 @@ const generateToken = (
     email: user?.email,
   }
 ) => {
-  console.log(payload, "tokenDATA");
+  // console.log(payload, "tokenDATA");
   return jwt.sign(payload, config.JWT_SECRET, { expiresIn: "1h" });
 };
 
@@ -1088,12 +1079,12 @@ const storeOTP = async (email, otp, expirationTime) => {
 const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
-    console.log(email, "email");
+    // console.log(email, "email");
     if (!email) {
       return res.status(400).json({ message: "Please enter all fields" });
     }
     const user = await User.findOne({ email });
-    console.log(user);
+    // console.log(user);
     if (!user) {
       return res.status(400).json({ message: "User not found" });
     }
@@ -1131,7 +1122,7 @@ const forgotPassword = async (req, res) => {
 const changePassword = async (req, res) => {
   try {
     const { email, newPassword, otp } = req.body;
-    console.log(req.body);
+    // console.log(req.body);
 
     if (!email || !newPassword || !otp) {
       return res
@@ -1226,12 +1217,12 @@ const updatePassword = async (req, res) => {
         message: "Please provide userId, currentPassword, and newPassword",
       });
     }
-    console.log(req.user, "req.user");
+    // console.log(req.user, "req.user");
     const existingUser = await User.findOne({
       email: { $regex: new RegExp(`^${email}$`, "i") },
     });
 
-    console.log(existingUser, "existingUser");
+    // console.log(existingUser, "existingUser");
 
     if (!existingUser) {
       return res.status(404).json({ message: "User not found" });

@@ -47,16 +47,16 @@ const Booking = require("../model/bookingSchema");
 
 exports.filterHotels = async (req, res) => {
   const { checkIn, checkOut, location } = req.body;
-console.log(req.body , "req.body")
+// console.log(req.body , "req.body")
 
   const sanitizedLocation = location.trim();
 
-  console.log(checkIn, checkOut, 'ffffff');
+  // console.log(checkIn, checkOut, 'ffffff');
 
   try {
     let hotels;
 
-    console.log(sanitizedLocation.toLowerCase());
+    // console.log(sanitizedLocation.toLowerCase());
     if (sanitizedLocation.toLowerCase() === "all") {
       hotels = await Hotel.find();
     } else {
@@ -150,7 +150,7 @@ console.log(req.body , "req.body")
 
 exports.createHotel = async (req, res) => {
   const { uploadPicture } = multerConfigs;
-  console.log(req.body, "req.body");
+  // console.log(req.body, "req.body");
 
   uploadPicture(req, res, async function (err) {
     if (err) {
@@ -158,13 +158,13 @@ exports.createHotel = async (req, res) => {
       return res.status(400).send("Error uploading files.");
     }
 
-    console.log(req.body);
+    // console.log(req.body);
 
     let facilities = req.body.facility ? JSON.parse(req.body.facility) : [];
 
     let ammenities = req.body.ammenities ? JSON.parse(req.body.ammenities) : [];
 
-    console.log('step1');
+    // console.log('step1');
 
     let data = {
       contactNo: JSON.parse(req.body.contactDetails).contactNo,
@@ -187,7 +187,7 @@ exports.createHotel = async (req, res) => {
       rooms: JSON.parse(req.body.rooms)
     };
 
-    console.log('step2');
+    // console.log('step2');
 
     const pictureLinks = req.files["picture"]?.map((file, index) => ({
       link: `${process.env.HOST}${
@@ -219,7 +219,7 @@ exports.createHotel = async (req, res) => {
       }/uploads/documents/property/${file.filename}`,
     }));
 
-    console.log('step3');
+    // console.log('step3');
 
     try {
       const hotel = new Hotel({
@@ -357,14 +357,14 @@ exports.createHotel = async (req, res) => {
 exports.getHotelFilterd = async (req, res) => {
   try {
     // Construct the MongoDB query based on the request query parameters
-    console.log(req.query , "req.query") 
+    // console.log(req.query , "req.query") 
     const queryObj = buildQuery(req.query);
     // console.log(queryObj.hotelQuery , "queryObj");   
     // console.log(queryObj , "queryObj");
 
    
     const filteredHotels = await Hotel.find(queryObj.hotelQuery);      
-    console.log(filteredHotels , "filteredHotels")        
+    // console.log(filteredHotels , "filteredHotels")        
      
     // if(queryObj.roomQuery) {
     //   const roomFilteredHotels = await Room.find(queryObj.roomQuery);
@@ -410,7 +410,7 @@ const buildQuery = (queryParams) => {
   }
 
   if (queryParams.priceRange) {
-    console.log(queryParams.priceRange, 'priceRange');
+    // console.log(queryParams.priceRange, 'priceRange');
     switch (queryParams.priceRange) {
       case 'NPR 0 - 1500':
         roomQuery.weekdayPrice = { $lte: 1500 };
@@ -431,8 +431,8 @@ const buildQuery = (queryParams) => {
         break;
     }
   }
-  console.log(roomQuery, 'roomQuery');
-  console.log(query, 'query');
+  // console.log(roomQuery, 'roomQuery');
+  // console.log(query, 'query');
   return { hotelQuery: query, roomQuery };
 };
 
@@ -459,7 +459,7 @@ exports.getHotelById = async (req, res) => {
     }
 
     // console.log("hello")
-    console.log(hotels, "hotelData");
+    // console.log(hotels, "hotelData");
 
     res.json({
       message: "Hotel data fetched successfully",
