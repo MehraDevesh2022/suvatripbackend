@@ -20,8 +20,8 @@ const transporter = nodemailer.createTransport({
   host: "smtp-relay.brevo.com",
   port: "587",
   auth: {
-    user: "suvatrip1@gmail.com",
-    pass: "aHSmbLgWfVqr54Uy",
+    user: "bhashrm96@gmail.com",
+    pass: "cQ8U4CsxEJGvIdjA",
   },
 });
 

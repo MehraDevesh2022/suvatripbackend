@@ -9,12 +9,12 @@ const nodemailer = require('nodemailer');
 
 // Create a SMTP transporter
 const transporter = nodemailer.createTransport({
-  host: 'smtp-relay.brevo.com',
-  port: '587',
+  host: "smtp-relay.brevo.com",
+  port: "587",
   auth: {
-    user: 'suvatrip1@gmail.com',
-    pass: 'aHSmbLgWfVqr54Uy'
-  }
+    user: "bhashrm96@gmail.com",
+    pass: "cQ8U4CsxEJGvIdjA",
+  },
 });
 
 exports.getAllUsers = async (req, res) => {

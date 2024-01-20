@@ -7,12 +7,12 @@ const Room = require("../model/roomSchema");
 const moment = require("moment");
 
 // Create a SMTP transporter
-const transporter = nodemailer.createTransport({ 
+const transporter = nodemailer.createTransport({
   host: "smtp-relay.brevo.com",
   port: "587",
   auth: {
-    user: "suvatrip1@gmail.com",
-    pass: "aHSmbLgWfVqr54Uy",
+    user: "bhashrm96@gmail.com",
+    pass: "cQ8U4CsxEJGvIdjA",
   },
 });
 
@@ -47,16 +47,12 @@ const Booking = require("../model/bookingSchema");
 
 exports.filterHotels = async (req, res) => {
   const { checkIn, checkOut, location } = req.body;
-// console.log(req.body , "req.body")
 
   const sanitizedLocation = location.trim();
-
-  // console.log(checkIn, checkOut, 'ffffff');
 
   try {
     let hotels;
 
-    // console.log(sanitizedLocation.toLowerCase());
     if (sanitizedLocation.toLowerCase() === "all") {
       hotels = await Hotel.find();
     } else {
@@ -127,6 +123,7 @@ exports.filterHotels = async (req, res) => {
     } else {
       filteredHotels = hotels;
     }
+
 
     if (req.isHotelAccess) {
       return res.json({
